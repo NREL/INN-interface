@@ -1,6 +1,6 @@
 import numpy as np
-from INN import INN
-from utils import *
+from INN_interface.INN import INN
+from INN_interface.utils import *
 import matplotlib.pyplot as plt
 
 cd = 0.015

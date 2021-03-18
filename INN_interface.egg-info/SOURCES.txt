@@ -1,0 +1,11 @@
+setup.py
+INN_interface/INN.py
+INN_interface/__init__.py
+INN_interface/inv_net.py
+INN_interface/train_net.py
+INN_interface/utils.py
+INN_interface.egg-info/PKG-INFO
+INN_interface.egg-info/SOURCES.txt
+INN_interface.egg-info/dependency_links.txt
+INN_interface.egg-info/top_level.txt
+INN_interface.egg-info/zip-safe
