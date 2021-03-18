@@ -1,5 +1,6 @@
 import h5py
 import numpy as np
+import os
 
 def norm_data(data, scale_factor=None, scale_type='standard'):
     # Function to normalize the input data
@@ -47,7 +48,9 @@ def unnorm_data(data, scale_factor, scale_type='standard'):
 
 def save_scale_factors(af_name, scale_factors):
     # Function to write scale_factors to h5 file 
-    with h5py.File('model/'+af_name+'/scale_factors.h5', 'w') as f:
+    this_directory = os.path.abspath(os.path.dirname(__file__))
+    input_file_sf = os.path.join(this_directory, "model/" + af_name + '/scale_factors.h5')
+    with h5py.File(input_file_sf, 'w') as f:
         for key in scale_factors:
             f_key = f.create_group(key)
             if scale_factors[key][2] == 'minmax':
@@ -64,7 +67,9 @@ def save_scale_factors(af_name, scale_factors):
 def load_scale_factors(af_name):
     # Function to load previously saved scale_factors
     scale_factors = {}
-    with h5py.File('model/'+af_name+'/scale_factors.h5', 'r') as f:
+    this_directory = os.path.abspath(os.path.dirname(__file__))
+    input_file_sf = os.path.join(this_directory, "model/" + af_name + '/scale_factors.h5')
+    with h5py.File(input_file_sf, 'r') as f:
         for key in f:
             f_key = f[key]
             if f_key['type'][()] == 'minmax':

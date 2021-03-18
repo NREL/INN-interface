@@ -2,8 +2,8 @@ import os
 import psdr
 import numpy as np
 import tensorflow as tf
-from inv_net import InvNet
-from utils import *
+from INN_interface.inv_net import InvNet
+from INN_interface.utils import *
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 tf.keras.backend.set_floatx('float64')
 
@@ -38,14 +38,19 @@ class INN():
         self.Ws = {}
         self.scale_factors = {}
         self.models = {}
+
+        this_directory = os.path.abspath(os.path.dirname(__file__))
+
         for af in afs:
-            self.Ws[af] = np.load('model/'+af+'/U.npy')
+            input_file_U = os.path.join(this_directory, "model/" + af + '/U.npy')
+            self.Ws[af] = np.load(input_file_U)
             self.scale_factors[af] = load_scale_factors(af)
+            input_file_inn = os.path.join(this_directory, "model/" + af + '/inn.h5')
             self.models[af] = InvNet(x_in, y_in, c_in, f_in, z_in, l_in,
                                      input_shape=tf.TensorShape([xM+yM]),
                                      n_layers=15, W=self.Ws[af],
                                      scale_factors=self.scale_factors[af],
-                                     model_path='model/'+af+'/inn.h5')
+                                     model_path=input_file_inn)
 
     def generate_polars(self, cst, Re, alpha=np.arange(-4, 20.1, 0.25)):
         # Baseline airfoil fixed as DU25... eventually this can be handled adaptively

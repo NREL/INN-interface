@@ -5,7 +5,7 @@ import scipy as sp
 import tensorflow as tf
 from tensorflow.keras import Model
 from time import time
-from utils import *
+from INN_interface.utils import *
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 tf.keras.backend.set_floatx('float64')
 
