@@ -1,7 +1,7 @@
 import h5py
 import numpy as np
 import os
-from cst import *
+from INN_interface.cst import *
 
 def norm_data(data, scale_factor=None, scale_type='standard'):
     # Function to normalize the input data
