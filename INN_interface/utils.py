@@ -1,6 +1,7 @@
 import h5py
 import numpy as np
 import os
+from cst import *
 
 def norm_data(data, scale_factor=None, scale_type='standard'):
     # Function to normalize the input data
@@ -78,5 +79,14 @@ def load_scale_factors(af_name):
                 scale_factors[key] = [f_key['mu'][()], f_key['sigma'][()], 'standard']
 
     return scale_factors
+
+
+def get_airfoil_shape(af_cst):
+    BP = 8
+    af = AirfoilShape.from_cst_parameters( af_cst[0:BP+1],
+                                           af_cst[2*(BP+1)],
+                                           af_cst[BP+1:2*(BP+1)],
+                                           af_cst[2*(BP+1)+1] )
+    return af.xco, af.yco
 
 
