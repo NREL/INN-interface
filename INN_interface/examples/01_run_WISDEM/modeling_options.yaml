@@ -9,7 +9,7 @@ WISDEM:
         inn_af: True
         inn_af_max_t/c: 0.29
         inn_af_min_t/c: 0.24
-        stall_margin: 5
+        stall_margin: 5  # degrees
     DriveSE:
         flag: True
     TowerSE:             # Options of TowerSE module
