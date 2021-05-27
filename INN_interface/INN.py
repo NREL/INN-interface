@@ -2,13 +2,15 @@ import os
 import psdr
 import numpy as np
 import tensorflow as tf
-from INN_interface.inv_net import InvNet
-from INN_interface.utils import *
+from inv_net import InvNet
+from utils import *
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 tf.keras.backend.set_floatx('float64')
 
 class INN():
-    def __init__(self, afs=['DU25_A17']):
+    def __init__(self, afs=['DU21_A17', 'DU25_A17', 'DU30_A17', 'DU35_A17', 'FFA_W3_211', 'FFA_W3_241',
+                            'FFA_W3_270blend', 'FFA_W3_301', 'FFA_W3_330blend', 'FFA_W3_360',
+                            'FFA_W3_360GF', 'NACA64_A17']):
         '''
             DESCRIPTION 
 
@@ -38,66 +40,66 @@ class INN():
         self.Ws = {}
         self.scale_factors = {}
         self.models = {}
-
-        this_directory = os.path.abspath(os.path.dirname(__file__))
-
         for af in afs:
-            input_file_U = os.path.join(this_directory, "model/" + af + '/U.npy')
-            self.Ws[af] = np.load(input_file_U)
+            self.Ws[af] = np.load('model/'+af+'/U.npy')
             self.scale_factors[af] = load_scale_factors(af)
-            input_file_inn = os.path.join(this_directory, "model/" + af + '/inn.h5')
             self.models[af] = InvNet(x_in, y_in, c_in, f_in, z_in, l_in,
                                      input_shape=tf.TensorShape([xM+yM]),
                                      n_layers=15, W=self.Ws[af],
                                      scale_factors=self.scale_factors[af],
-                                     model_path=input_file_inn)
+                                     model_path='model/'+af+'/inn.h5')
 
-    def generate_polars(self, cst, Re, alpha=np.arange(-4, 20.1, 0.25)):
-        # Baseline airfoil fixed as DU25... eventually this can be handled adaptively
-        af = 'DU25_A17'
-
-        N_shapes, N_angles = cst.shape[0], alpha.size
+    def generate_polars(self, cst, Re, alpha=np.arange(-4, 20.1, 0.25), af=None):
+        cst = cst.reshape((1, -1)) if cst.ndim == 1 else cst
+        af = self.identify_airfoil(cst=cst) if af is None else af
+        if isinstance(af, str):
+            af = [af for _ in range(cst.shape[0])]
 
         # Convert Re number to numpy array
         if np.isscalar(Re):
-            Re = np.repeat(np.array([[Re]]), cst.shape[0], axis=0)
-        assert cst.shape[0] == Re.shape[0]
+            Re = np.repeat(np.array([[Re]]), 1, axis=0)
 
-        # Remove trailing edge factors if held constant
-        if 'trailing_edge' in self.scale_factors[af]:
-            cst = cst[:, :-2]
+        cd, cl = np.zeros((cst.shape[0], alpha.size)), np.zeros((cst.shape[0], alpha.size))
+        for i in range(cst.shape[0]):
+            cst_i = cst[i, :].reshape((1, -1))
+            N_angles = alpha.size
 
-        # Matches input CST parameters to sweep of angles of attack
-        cst = np.repeat(cst, N_angles, axis=0)
-        alpha = np.tile(alpha.reshape((-1, 1)), (N_shapes, 1))
+            # Remove trailing edge factors if held constant
+            if 'trailing_edge' in self.scale_factors[af[i]]:
+                cst_i = cst_i[:, :-2]
 
-        # Perform input normalizations and dimension reductions before passing to network
-        x = np.concatenate((cst, alpha), axis=1)
-        x, _ = norm_data(x, self.models[af].scale_factors['x'], scale_type='minmax')
-        x = np.concatenate((x[:, :-1]@self.Ws[af], x[:, -1:]), axis=1)
-        if self.models[af].xM > x.shape[1]:
-            x = np.concatenate((x, np.zeros((x.shape[0], self.models[af].xM-x.shape[1]))), axis=1)
+            # Matches input CST parameters to sweep of angles of attack
+            cst_i = np.repeat(cst_i, N_angles, axis=0)
+            alpha = alpha.reshape((-1, 1))
 
-        # Normalize Renolds number
-        y, _ = norm_data(np.repeat(Re, N_angles, axis=0), self.models[af].scale_factors['y'])
+            # Perform input normalizations and dimension reductions before passing to network
+            x = np.concatenate((cst_i, alpha), axis=1)
+            x, _ = norm_data(x, self.models[af[i]].scale_factors['x'], scale_type='minmax')
+            x = np.concatenate((x[:, :-1]@self.Ws[af[i]], x[:, -1:]), axis=1)
+            if self.models[af[i]].xM > x.shape[1]:
+                x = np.concatenate((x, np.zeros((x.shape[0], self.models[af[i]].xM-x.shape[1]))), axis=1)
 
-        # Evalutate forward model and return values to physical space
-        _, _, f_out, _ = self.models[af].eval_forward(x, y)
-        f_out = unnorm_data(f_out, scale_factor=self.scale_factors[af]['f'])
-        f_out = f_out.numpy()
-        f_out[:, 0] = np.power(10., f_out[:, 0])
+            # Normalize Renolds number
+            y, _ = norm_data(np.repeat(Re, N_angles, axis=0), self.models[af[i]].scale_factors['y'])
 
-        f_out = f_out.reshape((N_shapes, N_angles, self.models[af].fM))
+            # Evalutate forward model and return values to physical space
+            _, _, f_out, _ = self.models[af[i]].eval_forward(x, y)
+            f_out = unnorm_data(f_out, scale_factor=self.scale_factors[af[i]]['f'])
+            f_out = f_out.numpy()
+            f_out[:, 0] = np.power(10., f_out[:, 0])
 
-        # Obtain coefficients of lift and drag
-        cd, clcd = f_out[:, :, 0], f_out[:, :, 1]
-        cl = cd*clcd
+            f_out = f_out.reshape((1, N_angles, self.models[af[i]].fM))
+            
+            # Obtain coefficients of lift and drag
+            cd_i, clcd_i = f_out[:, :, 0], f_out[:, :, 1]
+            cl_i = cd_i*clcd_i
+
+            cd[i, :] = cd_i
+            cl[i, :] = cl_i
 
         return cd, cl
 
-    def inverse_design(self, cd, clcd, stall_margin, thickness, Re, N=1, process_samples=True):
-        # Baseline airfoil fixed as DU25... eventually this can be handled adaptively
-        af = 'DU25_A17'
+    def inverse_design(self, cd, clcd, stall_margin, thickness, Re, af='DU25_A17', N=1, process_samples=True):
 
         # Determine dimension of zero paddings of input space (artifact of INN architecutre)
         xM_padding = (self.models[af].cM+self.models[af].fM+self.models[af].zM) - (self.Ws[af].shape[1]+1)
@@ -133,6 +135,27 @@ class INN():
     def hierarchical_design(self):
         # Function that will handle sampling from the various baseline models
         pass
+
+    def identify_airfoil(self, cst=None):
+        af_cst = np.load('model/baseline_cst.npz')
+
+        D_min = [1e6 for _ in range(cst.shape[0])]
+        af_opt = [None for _ in range(cst.shape[0])]
+        for af in af_cst:
+            cst_diff = abs(cst - af_cst[af])
+            cst_diff -= 0.2*abs(af_cst[af])
+            tf = (cst_diff < 0.)
+            cst_diff = abs(cst_diff)
+            cst_diff[tf] = 0.
+
+            D = np.sum(cst_diff**2, axis=1)
+
+            tf = [(af_i is None) for af_i in af_opt] | (D < D_min)
+
+            af_opt = [af if tf_i else af_opt[i] for i, tf_i in enumerate(tf)]
+            D_min = [D[i] if tf_i else D_min[i] for i, tf_i in enumerate(tf)]
+
+        return af_opt
 
     def recover_full_cst(self, x, af):
         N = x.shape[0]
