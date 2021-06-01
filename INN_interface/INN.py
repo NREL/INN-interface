@@ -2,8 +2,8 @@ import os
 import psdr
 import numpy as np
 import tensorflow as tf
-from inv_net import InvNet
-from utils import *
+from INN_interface.inv_net import InvNet
+from INN_interface.utils import *
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 tf.keras.backend.set_floatx('float64')
 
@@ -41,13 +41,15 @@ class INN():
         self.scale_factors = {}
         self.models = {}
         for af in afs:
-            self.Ws[af] = np.load('model/'+af+'/U.npy')
+            this_directory = os.path.abspath(os.path.dirname(__file__))
+            airfoil_path = os.path.join(this_directory, 'model/'+af)
+            self.Ws[af] = np.load(airfoil_path + '/U.npy')
             self.scale_factors[af] = load_scale_factors(af)
             self.models[af] = InvNet(x_in, y_in, c_in, f_in, z_in, l_in,
                                      input_shape=tf.TensorShape([xM+yM]),
                                      n_layers=15, W=self.Ws[af],
                                      scale_factors=self.scale_factors[af],
-                                     model_path='model/'+af+'/inn.h5')
+                                     model_path=airfoil_path + '/inn.h5')
 
     def generate_polars(self, cst, Re, alpha=np.arange(-4, 20.1, 0.25), af=None):
         cst = cst.reshape((1, -1)) if cst.ndim == 1 else cst
@@ -137,7 +139,8 @@ class INN():
         pass
 
     def identify_airfoil(self, cst=None):
-        af_cst = np.load('model/baseline_cst.npz')
+        this_directory = os.path.abspath(os.path.dirname(__file__))
+        af_cst = np.load(os.path.join(this_directory, 'model/baseline_cst.npz'))
 
         D_min = [1e6 for _ in range(cst.shape[0])]
         af_opt = [None for _ in range(cst.shape[0])]

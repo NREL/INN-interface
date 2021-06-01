@@ -1,6 +1,7 @@
 setup.py
 INN_interface/INN.py
 INN_interface/__init__.py
+INN_interface/cst.py
 INN_interface/inv_net.py
 INN_interface/train_net.py
 INN_interface/utils.py

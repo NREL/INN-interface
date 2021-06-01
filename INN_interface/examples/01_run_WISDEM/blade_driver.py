@@ -11,15 +11,15 @@ fname_analysis_options = mydir + os.sep + "analysis_options.yaml"
 
 wt_opt, modeling_options, analysis_options = run_wisdem(fname_wt_input, fname_modeling_options, fname_analysis_options)
 
-cd = wt_opt['blade.interp_airfoils.cd_interp'][:, 110, 0, 0]
-cl = wt_opt['blade.interp_airfoils.cl_interp'][:, 110, 0, 0]
-r_thick = wt_opt['blade.interp_airfoils.r_thick_interp']
-
-
-print('cd', repr(cd))
-print('cl', repr(cl))
-print('L/D', repr(cl / cd))
-print('t/c', repr(r_thick))
+# cd = wt_opt['blade.interp_airfoils.cd_interp'][:, 110, 0, 0]
+# cl = wt_opt['blade.interp_airfoils.cl_interp'][:, 110, 0, 0]
+# r_thick = wt_opt['blade.interp_airfoils.r_thick_interp']
+# 
+# 
+# print('cd', repr(cd))
+# print('cl', repr(cl))
+# print('L/D', repr(cl / cd))
+# print('t/c', repr(r_thick))
 
 
 # if MPI:
