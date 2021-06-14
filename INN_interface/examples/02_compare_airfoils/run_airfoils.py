@@ -24,9 +24,9 @@ wt_init = sch.load_geometry_yaml(geom_yaml_filename)
 
 airfoils = wt_init['airfoils']
 
-individual_plots = False
+individual_plots = True
 Re = 9.0e6
-alpha = np.arange(-4, 20, 0.25)
+alpha = np.arange(-4, 20.25, 0.25)
 
 if not individual_plots:
     fig = plt.figure()
@@ -80,18 +80,18 @@ for i, airfoil in enumerate(airfoils):
         f, ax = plt.subplots(4, 1, figsize=(5.3, 10))
 
         ax[0].plot(alpha, cl_inn, label="INN")
-        ax[0].plot(alpha, cl_yaml, label="yaml")
-        # ax[0].plot(alpha * 180. / np.pi, cl_interp_new, label="yaml")
+        ax[0].plot(alpha, cl_yaml, label="xfoil")
+        # ax[0].plot(alpha * 180. / np.pi, cl_interp_new, label="xfoil")
         ax[0].grid(color=[0.8, 0.8, 0.8], linestyle="--")
         ax[0].legend()
         ax[0].set_ylabel("CL (-)", fontweight="bold")
-        ax[0].set_title(f"Airfoil type {airfoil['name']}", fontweight="bold")
+        ax[0].set_title(f"{airfoil['name']} at {Re:.0f} Re", fontweight="bold")
         ax[0].set_ylim(-1.0, 2.5)
         ax[0].set_xlim(left=-4, right=20)
 
         ax[1].semilogy(alpha, cd_inn, label="INN")
-        ax[1].semilogy(alpha, cd_yaml, label="yaml")
-        # ax[1].semilogy(alpha * 180. / np.pi, cd_interp_new, label="yaml")
+        ax[1].semilogy(alpha, cd_yaml, label="xfoil")
+        # ax[1].semilogy(alpha * 180. / np.pi, cd_interp_new, label="xfoil")
         ax[1].grid(color=[0.8, 0.8, 0.8], linestyle="--")
         ax[1].set_ylabel("CD (-)", fontweight="bold")
         ax[1].set_ylim(0.005, 0.2)
@@ -101,19 +101,19 @@ for i, airfoil in enumerate(airfoils):
         ax[2].plot(
             alpha,
             cl_yaml/cd_yaml,
-            label="yaml",
+            label="xfoil",
         )
-        # ax[2].plot(alpha * 180. / np.pi, cl_interp_new / cd_interp_new, label="yaml")
+        # ax[2].plot(alpha * 180. / np.pi, cl_interp_new / cd_interp_new, label="xfoil")
         ax[2].grid(color=[0.8, 0.8, 0.8], linestyle="--")
         ax[2].set_ylabel("CL/CD (-)", fontweight="bold")
         ax[2].set_xlabel("Angles of Attack (deg)", fontweight="bold")
         ax[2].set_xlim(left=-4, right=20)
-        ax[2].set_ylim(top=150, bottom=-40)
+        ax[2].set_ylim(top=170, bottom=-40)
 
         cst_xy = af_points
 
         ax[3].plot(cst_xy[:, 0], cst_xy[:, 1], label="INN")
-        ax[3].plot(x, y, label="yaml")
+        ax[3].plot(x, y, label="xfoil")
         ax[3].grid(color=[0.8, 0.8, 0.8], linestyle="--")
         ax[3].set_ylabel("y-coord", fontweight="bold")
         ax[3].set_xlabel("x-coord", fontweight="bold")
