@@ -16,6 +16,9 @@ from wisdem.rotorse.geometry_tools.geometry import AirfoilShape, remap2grid, tra
 
 from INN_interface.cst import AirfoilShape as AirfoilShape_cst
 from INN_interface.cst import CSTAirfoil
+plt.rcParams["font.size"] = "16"
+plt.rcParams["lines.linewidth"] = "3"
+
 
 
 geom_yaml_filename = "BAR_USC.yaml"
@@ -26,6 +29,7 @@ airfoils = wt_init['airfoils']
 
 individual_plots = True
 Re = 9.0e6
+fontsize = 16
 alpha = np.arange(-4, 20.25, 0.25)
 
 if not individual_plots:
@@ -84,8 +88,8 @@ for i, airfoil in enumerate(airfoils):
         # ax[0].plot(alpha * 180. / np.pi, cl_interp_new, label="xfoil")
         ax[0].grid(color=[0.8, 0.8, 0.8], linestyle="--")
         ax[0].legend()
-        ax[0].set_ylabel("CL (-)", fontweight="bold")
-        ax[0].set_title(f"{airfoil['name']} at {Re:.0f} Re", fontweight="bold")
+        ax[0].set_ylabel("CL (-)", fontweight="bold", fontsize=fontsize)
+        ax[0].set_title(f"{airfoil['name']} at {Re:.0f} Re", fontweight="bold", fontsize=fontsize)
         ax[0].set_ylim(-1.0, 2.5)
         ax[0].set_xlim(left=-4, right=20)
 
@@ -93,7 +97,7 @@ for i, airfoil in enumerate(airfoils):
         ax[1].semilogy(alpha, cd_yaml, label="xfoil")
         # ax[1].semilogy(alpha * 180. / np.pi, cd_interp_new, label="xfoil")
         ax[1].grid(color=[0.8, 0.8, 0.8], linestyle="--")
-        ax[1].set_ylabel("CD (-)", fontweight="bold")
+        ax[1].set_ylabel("CD (-)", fontweight="bold", fontsize=fontsize)
         ax[1].set_ylim(0.005, 0.2)
         ax[1].set_xlim(left=-4, right=20)
 
@@ -105,8 +109,8 @@ for i, airfoil in enumerate(airfoils):
         )
         # ax[2].plot(alpha * 180. / np.pi, cl_interp_new / cd_interp_new, label="xfoil")
         ax[2].grid(color=[0.8, 0.8, 0.8], linestyle="--")
-        ax[2].set_ylabel("CL/CD (-)", fontweight="bold")
-        ax[2].set_xlabel("Angles of Attack (deg)", fontweight="bold")
+        ax[2].set_ylabel("CL/CD (-)", fontweight="bold", fontsize=fontsize)
+        ax[2].set_xlabel("Angle of Attack (deg)", fontweight="bold", fontsize=fontsize)
         ax[2].set_xlim(left=-4, right=20)
         ax[2].set_ylim(top=170, bottom=-40)
 
@@ -115,14 +119,14 @@ for i, airfoil in enumerate(airfoils):
         ax[3].plot(cst_xy[:, 0], cst_xy[:, 1], label="INN")
         ax[3].plot(x, y, label="xfoil")
         ax[3].grid(color=[0.8, 0.8, 0.8], linestyle="--")
-        ax[3].set_ylabel("y-coord", fontweight="bold")
-        ax[3].set_xlabel("x-coord", fontweight="bold")
+        ax[3].set_ylabel("y-coord", fontweight="bold", fontsize=fontsize)
+        ax[3].set_xlabel("x-coord", fontweight="bold", fontsize=fontsize)
         ax[3].set_xlim(left=0.0, right=1.0)
         ax[3].set_ylim(top=0.2, bottom=-0.2)
 
-        plt.tight_layout()
+        # plt.tight_layout()
 
-        plt.savefig(f"airfoil_comparison_{i}.png")
+        plt.savefig(f"airfoil_comparison_{i}.png", bbox_inches='tight')
         plt.close()
         
     else:
@@ -135,8 +139,8 @@ for i, airfoil in enumerate(airfoils):
         #     label=f"{airfoil['name']} at {Re:.0f} Re",
         # )
         ax.grid(color=[0.8, 0.8, 0.8], linestyle="--")
-        ax.set_ylabel("CL/CD (-)", fontweight="bold")
-        ax.set_xlabel("Angles of Attack (deg)", fontweight="bold")
+        ax.set_ylabel("CL/CD (-)", fontweight="bold", fontsize=fontsize)
+        ax.set_xlabel("Angle of Attack (deg)", fontweight="bold", fontsize=fontsize)
         ax.set_xlim(left=-4, right=20)
         ax.set_ylim(top=200, bottom=-40)
         
