@@ -2,6 +2,8 @@ import os
 import psdr
 import numpy as np
 import tensorflow as tf
+from scipy import interpolate
+from scipy.optimize import lsq_linear
 from INN_interface.inv_net import InvNet
 from INN_interface.utils import *
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -40,6 +42,7 @@ class INN():
         self.Ws = {}
         self.scale_factors = {}
         self.models = {}
+        self.KL_basis = {}
         for af in afs:
             this_directory = os.path.abspath(os.path.dirname(__file__))
             airfoil_path = os.path.join(this_directory, 'model/'+af)
@@ -50,21 +53,25 @@ class INN():
                                      n_layers=15, W=self.Ws[af],
                                      scale_factors=self.scale_factors[af],
                                      model_path=airfoil_path + '/inn.h5')
+            self.KL_basis[af] = airfoil_path+'/polar_KL.h5'
 
-    def generate_polars(self, cst, Re, alpha=np.arange(-4, 20.1, 0.25), af=None):
+    def generate_polars(self, cst, Re, alpha=np.arange(-4, 20.1, 0.25), af=None, KL_basis=True):
         cst = cst.reshape((1, -1)) if cst.ndim == 1 else cst
         af = self.identify_airfoil(cst=cst) if af is None else af
         if isinstance(af, str):
             af = [af for _ in range(cst.shape[0])]
 
+        N_shapes, N_angles = cst.shape[0], alpha.size
+
         # Convert Re number to numpy array
         if np.isscalar(Re):
-            Re = np.repeat(np.array([[Re]]), 1, axis=0)
+            Re = np.repeat(np.array([[Re]]), cst.shape[0], axis=0)
+        Re = Re.reshape((N_shapes, 1))
 
-        cd, cl = np.zeros((cst.shape[0], alpha.size)), np.zeros((cst.shape[0], alpha.size))
-        for i in range(cst.shape[0]):
+        cd, cl = np.zeros((N_shapes, N_angles)), np.zeros((N_shapes, N_angles))
+        for i in range(N_shapes):
             cst_i = cst[i, :].reshape((1, -1))
-            N_angles = alpha.size
+            Re_i = Re[i].reshape((1, 1))
 
             # Remove trailing edge factors if held constant
             if 'trailing_edge' in self.scale_factors[af[i]]:
@@ -82,7 +89,7 @@ class INN():
                 x = np.concatenate((x, np.zeros((x.shape[0], self.models[af[i]].xM-x.shape[1]))), axis=1)
 
             # Normalize Renolds number
-            y, _ = norm_data(np.repeat(Re, N_angles, axis=0), self.models[af[i]].scale_factors['y'])
+            y, _ = norm_data(np.repeat(Re_i, N_angles, axis=0), self.models[af[i]].scale_factors['y'])
 
             # Evalutate forward model and return values to physical space
             _, _, f_out, _ = self.models[af[i]].eval_forward(x, y)
@@ -95,6 +102,33 @@ class INN():
             # Obtain coefficients of lift and drag
             cd_i, clcd_i = f_out[:, :, 0], f_out[:, :, 1]
             cl_i = cd_i*clcd_i
+
+            if KL_basis:
+                Re_KL, alpha_KL = 1e6*np.arange(3., 12.1, 3.), np.arange(-4., 20.1, 1.)
+                Re_KL = Re_KL[np.argmin(abs(Re_KL - Re[i]))]
+                with h5py.File(self.KL_basis[af[i]], 'r') as f:
+                    alpha_KL = f['alpha'][()]
+                    cd_KL = f['cd/re{}/KL_basis'.format(int(Re_KL))][()]
+                    cd_KL_bounds = f['cd/re{}/KL_bounds'.format(int(Re_KL))][()]
+                    cl_KL = f['cl/re{}/KL_basis'.format(int(Re_KL))][()]
+                    cl_KL_bounds = f['cl/re{}/KL_bounds'.format(int(Re_KL))][()]
+                
+                cd_interp = np.zeros((N_angles, cd_KL.shape[1]))
+                cl_interp = np.zeros((N_angles, cl_KL.shape[1]))
+                for j in range(cd_KL.shape[1]):
+                    f_interp = interpolate.interp1d(alpha_KL, cd_KL[:, j])
+                    cd_interp[:, j] = f_interp(alpha)[:, 0]
+
+                    f_interp = interpolate.interp1d(alpha_KL, cl_KL[:, j])
+                    cl_interp[:, j] = f_interp(alpha)[:, 0]
+
+                coef_cd = lsq_linear(cd_interp, cd_i[0, :], 
+                                     bounds=(cd_KL_bounds[:, 0], cd_KL_bounds[:, 1]))
+                cd_i = cd_interp @ coef_cd.x
+
+                coef_cl = lsq_linear(cl_interp, cl_i[0, :],
+                                     bounds=(cl_KL_bounds[:, 0], cl_KL_bounds[:, 1]))
+                cl_i = cl_interp @ coef_cl.x
 
             cd[i, :] = cd_i
             cl[i, :] = cl_i
