@@ -12,6 +12,8 @@ design_variables:
                 index_start: 2         # Lock the first two DVs from blade root
                 index_end: 3
                 
+merit_figure: Cp
+                
 driver:
     optimization:
         flag: True         # Flag to enable optimization
