@@ -135,7 +135,8 @@ class INN():
 
         return cd, cl
 
-    def inverse_design(self, cd, clcd, stall_margin, thickness, Re, af='DU25_A17', N=1, process_samples=True):
+    def inverse_design(self, cd, clcd, stall_margin, thickness, Re, 
+                       af='DU25_A17', z=None, N=1, process_samples=True):
 
         # Determine dimension of zero paddings of input space (artifact of INN architecutre)
         xM_padding = (self.models[af].cM+self.models[af].fM+self.models[af].zM) - (self.Ws[af].shape[1]+1)
@@ -148,14 +149,41 @@ class INN():
         c_val, _ = norm_data(c_val.reshape((-1, self.models[af].cM)), self.models[af].scale_factors['c'])
         f_val, _ = norm_data(f_val.reshape((-1, self.models[af].fM)), self.models[af].scale_factors['f'])
 
-        # If process_sampes, then we must oversample the inverse direction to find best shapes
-        NN = 10*N if process_samples else N
+        if (z is None) or (np.isscalar(z)):
+            cheby_mean = False
 
-        # Run inverse model with randomly sampled latent variables (z)
-        y_val = tf.repeat(y_val, NN, axis=0)
-        c_val = tf.repeat(c_val, NN, axis=0)
-        f_val = tf.repeat(f_val, NN, axis=0)
-        z_val = tf.random.normal([NN, self.models[af].zM], dtype=tf.float64)
+            # If process_samples, then we must oversample the inverse direction to find best shapes
+            NN = 10*N if process_samples else N
+
+            # Run inverse model with randomly sampled latent variables (z)
+            y_val = tf.repeat(y_val, NN, axis=0)
+            c_val = tf.repeat(c_val, NN, axis=0)
+            f_val = tf.repeat(f_val, NN, axis=0)
+
+            if z is None:
+                z_val = tf.random.normal([NN, self.models[af].zM], dtype=tf.float64)
+            if np.isscalar(z):
+                tf.random.set_seed(z)
+                z_val = tf.random.normal([1, self.models[af].zM], dtype=tf.float64)
+                z_val = tf.repeat(z_val, NN, axis=0)
+                cheby_mean = True
+        else:
+            # If z is provided, then override N and process_samples and use given z
+            cheby_mean = True
+            if not tf.is_tensor(z):
+                z = tf.convert_to_tensor(z)
+            if tf.rank(z) == 1:
+                assert z.shape[0] == self.models[af].zM
+                z = tf.reshape(z, [1, self.models[af].zM])
+            NN = z.shape[0]
+
+            y_val = tf.repeat(y_val, NN, axis=0)
+            c_val = tf.repeat(c_val, NN, axis=0)
+            f_val = tf.repeat(f_val, NN, axis=0)
+            z_val = z
+
+            process_samples = False
+
         x_inv, _ = self.models[af].eval_inverse(y_val, c_val, f_val, z_val)
         
         # Sort generated shapes by errors in network forward prediction
@@ -164,7 +192,7 @@ class INN():
 
         # Map reduced dimension and normalized inputs back to physical space
         x_inv = x_inv[:, :-xM_padding]
-        cst, alpha = self.recover_full_cst(x_inv, af)
+        cst, alpha = self.recover_full_cst(x_inv, af, cheby_mean=cheby_mean)
 
         return cst, alpha
 
@@ -194,7 +222,7 @@ class INN():
 
         return af_opt
 
-    def recover_full_cst(self, x, af):
+    def recover_full_cst(self, x, af, cheby_mean=False):
         N = x.shape[0]
         m = self.Ws[af].shape[0]
         x_shape, alpha = x[:, :-1].numpy(), x[:, -1:].numpy()
@@ -204,6 +232,8 @@ class INN():
         domain = psdr.BoxDomain(-1.01*np.ones(m), 1.01*np.ones(m))
         for i in range(N):
             con_domain = domain.add_constraints(A_eq=self.Ws[af].T, b_eq=x_shape[i, :])
+            if cheby_mean:
+                np.random.seed(42)
 
             keep_trying, failed_attempts = True, 0
             while keep_trying:
@@ -214,7 +244,10 @@ class INN():
                     failed_attempts += 1
                     if failed_attempts > 10:
                         assert False, 'Too many failed attempts'
-            cst[i, :] = cst_i[-1, :]
+            if cheby_mean:
+                cst[i, :] = cst_i[0, :]
+            else:
+                cst[i, :] = cst_i[-1, :]
 
         # Maps normalilzed CST parameters back to physical space
         x = np.concatenate((cst, alpha), axis=1)

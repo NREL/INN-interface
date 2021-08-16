@@ -12,7 +12,7 @@ Re = 9000000.
 
 inn = INN()
 af_csts, alpha = inn.inverse_design(cd, clcd, stall_margin, thickness, Re, 
-                                N=100, process_samples=True)
+                                    z=42, N=100, process_samples=True)
 #
 # cst is a numpy array of size (N x 20) where the columns are:
 #    - 9 upper surface CST params
