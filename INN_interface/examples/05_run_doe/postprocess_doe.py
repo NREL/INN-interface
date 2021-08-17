@@ -52,5 +52,5 @@ plt.plot(x_data[indices], y_data[indices])
 plt.xlabel(x_key)
 plt.ylabel(y_key)
 
-plt.show()
+plt.savefig('out.png', dpi=300)
         

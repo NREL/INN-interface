@@ -1,7 +1,7 @@
 # Generic modeling options file to run standard WISDEM case
 General:
     verbosity: False  # When set to True, the code prints to screen many infos
-    solver_maxiter: 10
+    solver_maxiter: 2
 WISDEM:
     RotorSE:
         flag: True
