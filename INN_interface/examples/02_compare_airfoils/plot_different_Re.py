@@ -17,8 +17,8 @@ from wisdem.rotorse.geometry_tools.geometry import AirfoilShape, remap2grid, tra
 from INN_interface.cst import AirfoilShape as AirfoilShape_cst
 from INN_interface.cst import CSTAirfoil
 
-
-geom_yaml_filename = "BAR_USC.yaml"
+mydir = os.path.dirname(os.path.realpath(__file__))  # get path to this file
+geom_yaml_filename = os.path.dirname(mydir) + os.sep + "BAR_USC.yaml"
 wt_init = sch.load_geometry_yaml(geom_yaml_filename)
 
 

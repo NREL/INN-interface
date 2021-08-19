@@ -21,7 +21,8 @@ plt.rcParams["lines.linewidth"] = "3"
 
 
 
-geom_yaml_filename = "BAR_USC.yaml"
+mydir = os.path.dirname(os.path.realpath(__file__))  # get path to this file
+geom_yaml_filename = os.path.dirname(mydir) + os.sep + "BAR_USC.yaml"
 wt_init = sch.load_geometry_yaml(geom_yaml_filename)
 
 
