@@ -211,7 +211,12 @@ class INN():
                 f_af = f[af]
                 if (0.975*f_af['thickness'][0] <= thickness) & (1.025*f_af['thickness'][1] >= thickness):
                     af_thickness = abs(np.mean(f_af['thickness']) - thickness)
-                    af_dens = f_af['density'][cd_bin, clcd_bin, stall_bin, Re_bin]
+                    #af_dens = f_af['density'][cd_bin, clcd_bin, stall_bin, Re_bin]
+                    cd_idx = (f_af['cd_idx'][()] == cd_bin)
+                    clcd_idx = (f_af['clcd_idx'][()] == clcd_bin)
+                    stall_idx = (f_af['stall_idx'][()] == stall_bin)
+                    Re_idx = (f_af['Re_idx'][()] == Re_bin)
+                    af_dens = f_af['density'][cd_idx & clcd_idx & stall_idx & Re_idx]
 
                     if (opt_af is None) or (af_dens > opt_dens):
                         opt_af, opt_dens, opt_thickness = af, af_dens, af_thickness
