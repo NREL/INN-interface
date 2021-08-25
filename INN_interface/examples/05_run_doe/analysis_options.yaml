@@ -19,7 +19,7 @@ driver:
     flag: True            # Flag to enable design of experiments
     run_parallel: False    # Flag to run using parallel processing
     generator: FullFact    # Type of input generator. (Uniform)
-    num_samples: 11        # number of samples for (Uniform only)
+    num_samples: 21        # number of samples for (Uniform only)
     debug_print: True
 
 recorder:
