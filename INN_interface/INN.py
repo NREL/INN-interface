@@ -39,6 +39,7 @@ class INN():
         z_in = tf.keras.Input(shape=(zM,))
         l_in = tf.keras.Input(shape=(lM,))
 
+        self.afs = afs
         self.Ws = {}
         self.scale_factors = {}
         self.models = {}
@@ -54,6 +55,7 @@ class INN():
                                      scale_factors=self.scale_factors[af],
                                      model_path=airfoil_path + '/inn.h5')
             self.KL_basis[af] = airfoil_path+'/polar_KL.h5'
+        self.density_path = os.path.join(this_directory, 'model/output_densities.h5')
 
     def generate_polars(self, cst, Re, alpha=np.arange(-4, 20.1, 0.25), af=None, KL_basis=True):
         cst = cst.reshape((1, -1)) if cst.ndim == 1 else cst
@@ -136,7 +138,8 @@ class INN():
         return cd, cl
 
     def inverse_design(self, cd, clcd, stall_margin, thickness, Re, 
-                       af='DU25_A17', z=None, N=1, process_samples=True):
+                       af=None, z=None, N=1, process_samples=True):
+        af = self.hierarchical_design(cd, clcd, stall_margin, thickness, Re) if af is None else af
 
         # Determine dimension of zero paddings of input space (artifact of INN architecutre)
         xM_padding = (self.models[af].cM+self.models[af].fM+self.models[af].zM) - (self.Ws[af].shape[1]+1)
@@ -188,7 +191,7 @@ class INN():
         
         # Sort generated shapes by errors in network forward prediction
         if process_samples:
-            x_inv = self.sort_by_errs(x_inv, y_val, c_val, f_val, af)[:N, :]
+            x_inv = self.sort_by_errs(x_inv, y_val, c_val, f_val, z_val, af)[:N, :]
 
         # Map reduced dimension and normalized inputs back to physical space
         x_inv = x_inv[:, :-xM_padding]
@@ -196,9 +199,31 @@ class INN():
 
         return cst, alpha
 
-    def hierarchical_design(self):
-        # Function that will handle sampling from the various baseline models
-        pass
+    def hierarchical_design(self, cd, clcd, stall, thickness, Re):
+        with h5py.File(self.density_path, 'r') as f:
+            cd_bin = np.where((f['bins/cd'][1:] >= cd) & (f['bins/cd'][:-1] < cd))[0][0]
+            clcd_bin = np.where((f['bins/clcd'][1:] >= clcd) & (f['bins/clcd'][:-1] < clcd))[0][0]
+            stall_bin = np.where((f['bins/stall'][1:] >= stall) & (f['bins/stall'][:-1] < stall))[0][0]
+            Re_bin = np.argmin(abs(f['bins/Re'][()] - Re))
+
+            opt_af, opt_dens, opt_thickness = None, 0., 0.
+            for af in self.afs:
+                f_af = f[af]
+                if (0.975*f_af['thickness'][0] <= thickness) & (1.025*f_af['thickness'][1] >= thickness):
+                    af_thickness = abs(np.mean(f_af['thickness']) - thickness)
+                    #af_dens = f_af['density'][cd_bin, clcd_bin, stall_bin, Re_bin]
+                    cd_idx = (f_af['cd_idx'][()] == cd_bin)
+                    clcd_idx = (f_af['clcd_idx'][()] == clcd_bin)
+                    stall_idx = (f_af['stall_idx'][()] == stall_bin)
+                    Re_idx = (f_af['Re_idx'][()] == Re_bin)
+                    af_dens = f_af['density'][cd_idx & clcd_idx & stall_idx & Re_idx]
+
+                    if (opt_af is None) or (af_dens > opt_dens):
+                        opt_af, opt_dens, opt_thickness = af, af_dens, af_thickness
+                    elif (opt_dens == 0.) and (opt_thickness > af_thickness):
+                        opt_af, opt_dens, opt_thickness = af, af_dens, af_thickness
+
+        return opt_af
 
     def identify_airfoil(self, cst=None):
         this_directory = os.path.abspath(os.path.dirname(__file__))
@@ -229,7 +254,7 @@ class INN():
 
         # Uses a hit-and-run sampler to map reduced dimensional inputs back into full space
         cst = np.zeros((N, m))
-        domain = psdr.BoxDomain(-1.01*np.ones(m), 1.01*np.ones(m))
+        domain = psdr.BoxDomain(-1.025*np.ones(m), 1.025*np.ones(m))
         for i in range(N):
             con_domain = domain.add_constraints(A_eq=self.Ws[af].T, b_eq=x_shape[i, :])
             if cheby_mean:
@@ -286,7 +311,7 @@ class INN():
 
         return y_err, c_err, f_err
         
-    def sort_by_errs(self, x, y, c, f, af):
+    def sort_by_errs(self, x, y, c, f, z, af):
         # Sort shapes by total errors
         y_err, c_err, f_err = self.approx_errors(x, y, c, f, af)
 
