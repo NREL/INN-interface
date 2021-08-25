@@ -7,8 +7,8 @@ design_variables:
             L/D:
                 flag: True             # Flag to optimize
                 n_opt: 4               # Number of control points along blade span
-                max_decrease: 40.
-                max_increase: 40.
+                max_decrease: 20.
+                max_increase: 20.
                 index_start: 2         # Lock the first two DVs from blade root
                 index_end: 3
                 
