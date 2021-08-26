@@ -1,0 +1,20 @@
+# Generic modeling options file to run standard WISDEM case
+General:
+    verbosity: False  # When set to True, the code prints to screen many infos
+    solver_maxiter: 5
+WISDEM:
+    RotorSE:
+        flag: True
+        spar_cap_ss: Spar_cap_ss
+        spar_cap_ps: Spar_cap_ps
+        inn_af: True
+        inn_af_max_t/c: 0.30
+        inn_af_min_t/c: 0.20
+        stall_margin: 5  # degrees
+        n_pc: 8
+    DriveSE:
+        flag: True
+    TowerSE:             # Options of TowerSE module
+        flag: True
+    BOS:
+        flag: True

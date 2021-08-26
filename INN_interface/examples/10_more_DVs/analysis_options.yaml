@@ -6,11 +6,26 @@ design_variables:
         aero_shape:
             L/D:
                 flag: True             # Flag to optimize
-                n_opt: 4               # Number of control points along blade span
+                n_opt: 8               # Number of control points along blade span
                 max_decrease: 40.
                 max_increase: 40.
                 index_start: 2         # Lock the first two DVs from blade root
-                index_end: 4
+                index_end: 8
+            c_d:
+                flag: True             # Flag to optimize
+                n_opt: 8               # Number of control points along blade span
+                max_decrease: .005
+                max_increase: .005
+                index_start: 2         # Lock the first two DVs from blade root
+                index_end: 8
+            twist:
+                flag: True             # Flag to optimize
+                n_opt: 8               # Number of control points along blade span
+                max_decrease: 0.1
+                max_increase: 0.1
+                index_start: 2         # Lock the first two DVs from blade root
+                index_end: 8
+            
                 
 merit_figure: Cp
                 
