@@ -28,19 +28,19 @@ wt_init = sch.load_geometry_yaml(geom_yaml_filename)
 
 airfoils = wt_init['airfoils']
 
-individual_plots = True
+individual_plots = False
 Re = 9.0e6
 fontsize = 16
 alpha = np.arange(-4, 20.25, 0.25)
 
 if not individual_plots:
-    fig = plt.figure()
+    fig = plt.figure(figsize=(8, 6))
 
 
 for i, airfoil in enumerate(airfoils):
     print(airfoil['name'])
     
-    if 'circular' in airfoil['name']:
+    if 'circular' in airfoil['name'] or '500' in airfoil['name']:
         continue
         
     Re = airfoil['polars'][0]['re']
@@ -127,7 +127,7 @@ for i, airfoil in enumerate(airfoils):
 
         # plt.tight_layout()
 
-        plt.savefig(f"airfoil_comparison_{i}.png", bbox_inches='tight')
+        plt.savefig(f"airfoil_comparison_{i}.png", bbox_inches='tight', dpi=900)
         plt.close()
         
     else:
@@ -149,4 +149,4 @@ for i, airfoil in enumerate(airfoils):
 if not individual_plots:
     plt.legend()
     plt.tight_layout()
-    plt.savefig('INN_different_Re.png')
+    plt.savefig('INN_different_Re.png', dpi=900)
