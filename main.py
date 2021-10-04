@@ -11,8 +11,20 @@ thickness = 0.25
 Re = 9000000.
 
 inn = INN()
-af_csts, alpha = inn.inverse_design(cd, clcd, stall_margin, thickness, Re, 
-                                    z=42, N=100, process_samples=True)
+
+# If z=None and process_samples=True, then optimal values of z will be returned
+af_csts, alpha, z = inn.inverse_design(cd, clcd, stall_margin, thickness, Re, 
+                                       z=None, N=1, process_samples=True, cheby_mean=True)
+
+print('Optimal z for requested values: {}'.format(z[0, 0]))
+
+# With the optimal z in hand, can assign it during inverse_design call
+af_csts2, alpha2 = inn.inverse_design(cd, clcd, stall_margin, thickness, Re, 
+                                      z=z, N=1)
+print(np.max(abs(af_csts - af_csts2)))
+print(np.max(abs(alpha - alpha2)))
+
+exit()
 #
 # cst is a numpy array of size (N x 20) where the columns are:
 #    - 9 upper surface CST params

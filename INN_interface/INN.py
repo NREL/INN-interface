@@ -97,6 +97,7 @@ class INN():
             _, _, f_out, _ = self.models[af[i]].eval_forward(x, y)
             f_out = unnorm_data(f_out, scale_factor=self.scale_factors[af[i]]['f'])
             f_out = f_out.numpy()
+            f_out[f_out[:, 0] > 5., 0] = 5.
             f_out[:, 0] = np.power(10., f_out[:, 0])
 
             f_out = f_out.reshape((1, N_angles, self.models[af[i]].fM))
@@ -138,7 +139,7 @@ class INN():
         return cd, cl
 
     def inverse_design(self, cd, clcd, stall_margin, thickness, Re, 
-                       af=None, z=None, N=1, process_samples=True):
+                       af=None, z=None, N=1, process_samples=True, cheby_mean=False):
         af = self.hierarchical_design(cd, clcd, stall_margin, thickness, Re) if af is None else af
 
         # Determine dimension of zero paddings of input space (artifact of INN architecutre)
@@ -153,10 +154,8 @@ class INN():
         f_val, _ = norm_data(f_val.reshape((-1, self.models[af].fM)), self.models[af].scale_factors['f'])
 
         if (z is None) or (np.isscalar(z)):
-            cheby_mean = False
-
             # If process_samples, then we must oversample the inverse direction to find best shapes
-            NN = 10*N if process_samples else N
+            NN = np.maximum(10*N, 100) if process_samples else N
 
             # Run inverse model with randomly sampled latent variables (z)
             y_val = tf.repeat(y_val, NN, axis=0)
@@ -178,6 +177,8 @@ class INN():
             if tf.rank(z) == 1:
                 assert z.shape[0] == self.models[af].zM
                 z = tf.reshape(z, [1, self.models[af].zM])
+            if z.shape[0] == 1:
+                z = tf.repeat(z, N, axis=0)
             NN = z.shape[0]
 
             y_val = tf.repeat(y_val, NN, axis=0)
@@ -191,13 +192,17 @@ class INN():
         
         # Sort generated shapes by errors in network forward prediction
         if process_samples:
-            x_inv = self.sort_by_errs(x_inv, y_val, c_val, f_val, z_val, af)[:N, :]
+            x_inv, z_val = self.sort_by_errs(x_inv, y_val, c_val, f_val, z_val, af)
+            x_inv, z_val = x_inv[:N, :], z_val[:N, :]
 
         # Map reduced dimension and normalized inputs back to physical space
         x_inv = x_inv[:, :-xM_padding]
         cst, alpha = self.recover_full_cst(x_inv, af, cheby_mean=cheby_mean)
 
-        return cst, alpha
+        if process_samples:
+            return cst, alpha, z_val
+        else:
+            return cst, alpha
 
     def hierarchical_design(self, cd, clcd, stall, thickness, Re):
         with h5py.File(self.density_path, 'r') as f:
@@ -315,10 +320,11 @@ class INN():
         # Sort shapes by total errors
         y_err, c_err, f_err = self.approx_errors(x, y, c, f, af)
 
-        idx = np.argsort(y_err + c_err + f_err)
+        idx = np.argsort(f_err)
 
         x = tf.convert_to_tensor(x.numpy()[idx, :])
+        z = tf.convert_to_tensor(z.numpy()[idx, :])
 
-        return x
+        return x, z
 
 
