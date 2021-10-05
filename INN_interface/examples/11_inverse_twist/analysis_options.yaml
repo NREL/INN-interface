@@ -1,0 +1,46 @@
+general:
+    folder_output: outputs
+    fname_output: blade_out
+design_variables:
+    blade:
+        aero_shape:
+            L/D:
+                flag: True             # Flag to optimize
+                n_opt: 4               # Number of control points along blade span
+                max_decrease: 40.
+                max_increase: 40.
+                index_start: 2         # Lock the first two DVs from blade root
+                index_end: 4
+            c_d:
+                flag: True             # Flag to optimize
+                n_opt: 4               # Number of control points along blade span
+                max_decrease: .005
+                max_increase: .005
+                index_start: 2         # Lock the first two DVs from blade root
+                index_end: 4
+            twist:
+                flag: False             # Flag to optimize
+                inverse: True
+                n_opt: 4               # Number of control points along blade span
+                max_decrease: 0.1
+                max_increase: 0.1
+                index_start: 2         # Lock the first two DVs from blade root
+                index_end: 4
+            
+                
+merit_figure: Cp
+                
+driver:
+    optimization:
+        flag: True         # Flag to enable optimization
+        tol: 1.e-9          # Optimality tolerance
+        max_iter: 1000
+        solver: LN_COBYLA       # Optimization solver. Other options are 'SLSQP' - 'CONMIN'
+        step_size: 5.    # Step size for finite differencing
+        form: central       # Finite differencing mode, either forward or central
+        debug_print: True
+
+recorder:
+    flag: True             # Flag to activate OpenMDAO recorder
+    file_name: log_opt.sql # Name of OpenMDAO recorder
+    includes: ['*airfoil*', '*inn*']
