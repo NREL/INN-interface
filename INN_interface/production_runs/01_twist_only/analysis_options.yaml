@@ -28,7 +28,7 @@ design_variables:
                 index_end: 4
             
                 
-merit_figure: Cp
+merit_figure: LCOE
                 
 driver:
     optimization:

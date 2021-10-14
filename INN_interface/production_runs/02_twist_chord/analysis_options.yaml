@@ -35,7 +35,7 @@ design_variables:
                 index_end: 3 # Lock chord at blade tip
             
                 
-merit_figure: Cp
+merit_figure: LCOE
                 
 driver:
     optimization:
