@@ -1,0 +1,78 @@
+general:
+    folder_output: outputs
+    fname_output: blade_out
+design_variables:
+    blade:
+        aero_shape:
+            L/D:
+                flag: True             # Flag to optimize
+                n_opt: 4               # Number of control points along blade span
+                max_decrease: 40.
+                max_increase: 40.
+                index_start: 2         # Lock the first two DVs from blade root
+                index_end: 4
+            c_d:
+                flag: True             # Flag to optimize
+                n_opt: 4               # Number of control points along blade span
+                max_decrease: .005
+                max_increase: .005
+                index_start: 2         # Lock the first two DVs from blade root
+                index_end: 4
+            twist:
+                flag: False             # Flag to optimize
+                inverse: False
+                n_opt: 4               # Number of control points along blade span
+                max_decrease: 0.1
+                max_increase: 0.1
+                index_start: 2         # Lock the first two DVs from blade root
+                index_end: 4
+            chord:
+                flag: False  # Flag to optimize the chord
+                n_opt: 4     # Number of control points along blade span
+                max_decrease: 0.3 # Minimum multiplicative gain on existing chord at the n_opt locations
+                max_increase: 3. # Maximum multiplicative gain on existing chord at the n_opt locations
+                index_start: 2 # Start by optimizing chord at blade root
+                index_end: 3 # Lock chord at blade tip
+        structure:
+            spar_cap_ss:
+                flag: False # Flag to optimize spar caps
+                n_opt: 4
+                max_decrease: 0.5
+                max_increase: 2.0
+                index_star: 2
+                index_end: 3
+            spar_cap_ps:
+                equal_to_suction: True
+            
+                
+merit_figure: LCOE
+
+constraints:
+    blade:
+        strains_spar_cap_ss:
+            flag: False         # Flag to impose constraints on maximum strains (absolute value) in the spar cap on the blade suction side
+            max:    3500.e-6    # Value of maximum strains [-]
+            index_start: 2
+            index_end: 4
+        strains_spar_cap_ps:
+            flag: False         # Flag to impose constraints on maximum strains (absolute value) in the spar cap on the blade pressure side
+            max:    3500.e-6    # Value of maximum strains [-]
+            index_start: 2
+            index_end: 4
+        tip_deflection:
+            flag: False         # Constraint that maximum tip deflection cannot exceed 70% of tower clearance. Only for upwind rotors
+                
+driver:
+    optimization:
+        flag: True         # Flag to enable optimization
+        tol: 1.e-9          # Optimality tolerance
+        max_iter: 1000
+        solver: LN_COBYLA       # Optimization solver. Other options are 'SLSQP' - 'CONMIN'
+        step_size: 5.    # Step size for finite differencing
+        form: central       # Finite differencing mode, either forward or central
+        debug_print: True
+
+recorder:
+    flag: True             # Flag to activate OpenMDAO recorder
+    file_name: log_opt.sql # Name of OpenMDAO recorder
+    includes: ['*airfoils.coord_xy*', '*inn_af*']
