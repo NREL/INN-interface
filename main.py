@@ -1,5 +1,5 @@
 import numpy as np
-from INN_interface.INN import INN
+from INN_interface.INN_pga import INN
 from INN_interface import utils
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
@@ -12,35 +12,19 @@ Re = 9000000.
 
 inn = INN()
 
-# If z=None and process_samples=True, then optimal values of z will be returned
-af_csts, alpha, z = inn.inverse_design(cd, clcd, stall_margin, thickness, Re, 
-                                       z=None, N=1, process_samples=True, cheby_mean=True)
+XY_inn, alpha, Re_inn, z = inn.inverse_design(cd, clcd, stall_margin, thickness, Re, z=1, N=10, 
+                                              process_samples=True, return_z=True, data_format='XY')
 
-print('Optimal z for requested values: {}'.format(z[0, 0]))
-
-# With the optimal z in hand, can assign it during inverse_design call
-af_csts2, alpha2 = inn.inverse_design(cd, clcd, stall_margin, thickness, Re, 
-                                      z=z, N=1)
-print(np.max(abs(af_csts - af_csts2)))
-print(np.max(abs(alpha - alpha2)))
-
-exit()
-#
-# cst is a numpy array of size (N x 20) where the columns are:
-#    - 9 upper surface CST params
-#    - 9 lower surface CST params
-#    - upper trailing edge thickness
-#    - lower trailing edge thickness
+print('Optimal z for requested values: {}'.format(z[0, :]))
 
 alpha = np.arange(-4, 20, 0.25)
-cd, cl = inn.generate_polars(af_csts, Re, alpha=alpha)
-
+cd, cl = inn.generate_polars(XY_inn, Re_inn, alpha=alpha, 
+                             KL_basis=True, data_format='XY')
 
 with PdfPages('af_design_shapes.pdf') as pfpgs:
     fig = plt.figure()
-    for af_cst in af_csts:
-        x,y = utils.get_airfoil_shape(af_cst)       
-        plt.plot(x, y, 'k--', linewidth=0.1)
+    for i, xy_i in enumerate(XY_inn): 
+        plt.plot(xy_i[:, 0], xy_i[:, 1], 'k--', linewidth=0.5)
     plt.grid()
     plt.xlabel('x/c')    
     plt.ylabel('y/c')
@@ -48,7 +32,7 @@ with PdfPages('af_design_shapes.pdf') as pfpgs:
     pfpgs.savefig()
     
     fig,ax = plt.subplots(1,3)
-    for i, af_cst in enumerate(af_csts):
+    for i, xy_i in enumerate(XY_inn):
         ax[0].plot(alpha, cl[i], 'k--', linewidth=0.1)
         ax[1].plot(alpha, cd[i], 'k--', linewidth=0.1)
         ax[2].plot(alpha, cl[i]/cd[i], 'k--', linewidth=0.1)
