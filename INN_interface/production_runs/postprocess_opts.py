@@ -42,6 +42,7 @@ for idx, log in enumerate(optimization_logs):
     all_data.append(data)
     
 # print(all_data)
+# optimization_logs = optimization_logs[:2]
 
 n_cases = len(optimization_logs)
     
