@@ -41,13 +41,13 @@ class INN():
         this_directory = os.path.abspath(os.path.dirname(__file__))
         airfoil_path = os.path.join(this_directory, 'model/PGA')
 
+        self.scale_factors = load_scale_factors('PGA')
         self.model = InvNet(x_in, y_in, c_in, f_in, z_in, l_in,
                             input_shape=tf.TensorShape([xM+yM]),
                             n_layers=15, W=np.eye(xM-1),
                             scale_factors=self.scale_factors,
                             model_path=airfoil_path + '/inn.h5')
 
-        self.scale_factors = load_scale_factors('PGA')
         self.Vh = np.load(airfoil_path+'/Vh.npy')
         self.karcher_mean = np.load(airfoil_path+'/karcher_mean.npy')
         self.KL_basis = airfoil_path+'/polar_KL.h5'
