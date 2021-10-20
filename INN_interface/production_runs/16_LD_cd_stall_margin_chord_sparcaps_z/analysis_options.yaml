@@ -12,14 +12,14 @@ design_variables:
                 index_start: 2         # Lock the first two DVs from blade root
                 index_end: 6
             c_d:
-                flag: False             # Flag to optimize
+                flag: True             # Flag to optimize
                 n_opt: 6               # Number of control points along blade span
                 max_decrease: .005
                 max_increase: .005
                 index_start: 2         # Lock the first two DVs from blade root
                 index_end: 6
             stall_margin:
-                flag: False             # Flag to optimize
+                flag: True             # Flag to optimize
                 n_opt: 6               # Number of control points along blade span
                 max_decrease: 0.25
                 max_increase: 0.25
@@ -34,15 +34,20 @@ design_variables:
                 index_start: 2         # Lock the first two DVs from blade root
                 index_end: 6
             chord:
-                flag: False  # Flag to optimize the chord
+                flag: True  # Flag to optimize the chord
                 n_opt: 6     # Number of control points along blade span
                 max_decrease: 0.3 # Minimum multiplicative gain on existing chord at the n_opt locations
                 max_increase: 3. # Maximum multiplicative gain on existing chord at the n_opt locations
                 index_start: 2 # Start by optimizing chord at blade root
                 index_end: 5 # Lock chord at blade tip
+            z:
+                flag: True
+                n_opt: 3
+                lower_bound: -1.0
+                upper_bound: 1.0
         structure:
             spar_cap_ss:
-                flag: False # Flag to optimize spar caps
+                flag: True # Flag to optimize spar caps
                 n_opt: 6
                 max_decrease: 0.5
                 max_increase: 2.0
@@ -57,19 +62,19 @@ merit_figure: LCOE
 constraints:
     blade:
         strains_spar_cap_ss:
-            flag: False         # Flag to impose constraints on maximum strains (absolute value) in the spar cap on the blade suction side
+            flag: True         # Flag to impose constraints on maximum strains (absolute value) in the spar cap on the blade suction side
             max:    3500.e-6    # Value of maximum strains [-]
             index_start: 2
             index_end: 5
         strains_spar_cap_ps:
-            flag: False         # Flag to impose constraints on maximum strains (absolute value) in the spar cap on the blade pressure side
+            flag: True         # Flag to impose constraints on maximum strains (absolute value) in the spar cap on the blade pressure side
             max:    3500.e-6    # Value of maximum strains [-]
             index_start: 2
             index_end: 5
         tip_deflection:
-            flag: False         # Constraint that maximum tip deflection cannot exceed 70% of tower clearance. Only for upwind rotors
+            flag: True         # Constraint that maximum tip deflection cannot exceed 70% of tower clearance. Only for upwind rotors
         stall:
-            flag: False
+            flag: True
                 
 driver:
     optimization:

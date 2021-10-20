@@ -22,6 +22,7 @@ for subdir, dirs, files in os.walk(run_dir):
         if 'sql' in file:
             optimization_logs.append(os.path.join(subdir, file))
 
+# optimization_logs = optimization_logs[:2]
 print(optimization_logs)
 
 all_data = []
@@ -41,9 +42,6 @@ for idx, log in enumerate(optimization_logs):
         
     all_data.append(data)
     
-# print(all_data)
-# optimization_logs = optimization_logs[:2]
-
 n_cases = len(optimization_logs)
     
 import matplotlib.pyplot as plt
@@ -56,6 +54,7 @@ keys_to_plot = {
     "chord" : "blade.opt_var.chord_opt",
     "spar_cap" : "blade.opt_var.spar_cap_ss_opt",
     "LCOE" : "financese.lcoe",
+    "delta LCOE" : "financese.lcoe",
 }
 
 n_keys = len(keys_to_plot)
@@ -64,12 +63,16 @@ fig, axarr = plt.subplots(n_keys, n_cases, figsize=(30, 12))
 for idx, data in enumerate(all_data):
 
     for jdx, (key, dat_key) in enumerate(keys_to_plot.items()):
-        print(key, dat_key)
         try:
-            iters = range(len(data[dat_key]))
-            data_to_plot = data[dat_key]
-            axarr[jdx, idx].plot(iters, data_to_plot)
-        except KeyError:
+            if 'delta' in key:
+                data_to_plot = (data[dat_key] - data[dat_key][0]) / data[dat_key][0]
+                iters = range(len(data[dat_key]))
+                axarr[jdx, idx].plot(iters, data_to_plot)
+            else:
+                iters = range(len(data[dat_key]))
+                data_to_plot = data[dat_key]
+                axarr[jdx, idx].plot(iters, data_to_plot)
+        except KeyError as e:
             pass
         axarr[jdx, idx].set_ylabel(key)
     
