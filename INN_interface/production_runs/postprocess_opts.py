@@ -57,6 +57,17 @@ keys_to_plot = {
     "delta LCOE" : "financese.lcoe",
 }
 
+limits = {
+    "L/D" : [70., 130.],
+    "CD" : [0.0, 0.08],
+    "stall_m" : [-0.0, 0.4],
+    "twist" : [-0.1, 0.3],
+    "chord" : [2.0, 6.0],
+    "spar_cap" : [0., 0.15],
+    "LCOE" : [0.086, 0.090],
+    "delta LCOE" : [-0.05, 0.01],
+}
+
 n_keys = len(keys_to_plot)
 
 fig, axarr = plt.subplots(n_keys, n_cases, figsize=(30, 12))
@@ -75,6 +86,7 @@ for idx, data in enumerate(all_data):
         except KeyError as e:
             pass
         axarr[jdx, idx].set_ylabel(key)
+        axarr[jdx, idx].set_ylim(limits[key][0], limits[key][1])
     
     case_name = optimization_logs[idx].split('/')[-3:-2][0]
     axarr[0, idx].set_title(case_name)        
