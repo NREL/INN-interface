@@ -7,45 +7,13 @@ import openmdao.api as om
 import matplotlib.pyplot as plt
 import niceplots
 
+from INN_interface.production_runs.postprocessing_tools import load_cases
+
 
 case_names = ['00', '12']
 airfoil_indices = [19, 24, 29]
 
-optimization_logs = []
-
-# Simply gather all of the sql files
-run_dir = os.path.dirname(os.path.realpath(__file__))
-for subdir, dirs, files in os.walk(run_dir):
-    for file in files:
-        if 'sql' in file:
-            optimization_logs.append(os.path.join(subdir, file))
-
-case_filenames = []
-for log in optimization_logs:
-    for case_name in case_names:
-        if case_name in log:
-            case_filenames.append(log)
-            
-optimization_logs = case_filenames
-        
-all_data = []
-for idx, log in enumerate(optimization_logs):
-    print(idx, log)
-    data = {}
-    cr = om.CaseReader(log)
-    cases = cr.get_cases()
-    
-    for case in cases:
-        for key in case.outputs.keys():
-            if key not in data.keys():
-                print(key)
-                data[key] = []
-            data[key].append(case.outputs[key])
-            
-    for key in data.keys():
-        data[key] = np.array(data[key])
-        
-    all_data.append(data)
+all_data, optimization_logs = load_cases(case_names)
     
 n_cases = len(optimization_logs)
 n_indices = len(airfoil_indices)
