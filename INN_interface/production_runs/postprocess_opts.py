@@ -1,8 +1,3 @@
-"""
-Simple script to show how to grab all cases from a DOE run. User can then
-postprocess or plot further.
-"""
-
 import glob
 import os
 import sys
@@ -14,8 +9,9 @@ import openmdao.api as om
 
 from INN_interface.production_runs.postprocessing_tools import load_cases
 
+case_names = ['00', '12']
 
-all_data, optimization_logs = load_cases()
+all_data, optimization_logs = load_cases(case_names)
     
 n_cases = len(optimization_logs)
     
@@ -30,6 +26,8 @@ keys_to_plot = {
     "spar_cap" : "blade.opt_var.spar_cap_ss_opt",
     "LCOE" : "financese.lcoe",
     "delta LCOE" : "financese.lcoe",
+    "blade cost" : "tcc.blade_cost",
+    "AEP" : "rotorse.rp.AEP",
 }
 
 limits = {
@@ -61,7 +59,9 @@ for idx, data in enumerate(all_data):
         except KeyError as e:
             pass
         axarr[jdx, idx].set_ylabel(key)
-        axarr[jdx, idx].set_ylim(limits[key][0], limits[key][1])
+        
+        if key in limits:
+            axarr[jdx, idx].set_ylim(limits[key][0], limits[key][1])
     
     case_name = optimization_logs[idx].split('/')[-3:-2][0]
     axarr[0, idx].set_title(case_name)        
@@ -69,4 +69,5 @@ for idx, data in enumerate(all_data):
     
 plt.tight_layout()
 
-plt.savefig('opt_history.pdf')
+plt.show()
+# plt.savefig('opt_history.pdf')

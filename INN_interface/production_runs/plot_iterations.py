@@ -36,6 +36,6 @@ for idx, data in enumerate(all_data):
         axarr[jdx].set_ylabel(data_name.split('.')[-1])
 
 axarr[0].legend(loc='best')    
-axarr[-1].set_xlabel('Nondimensional blade span')
+axarr[-1].set_xlabel('Optimization iterations')
 plt.show()
 
