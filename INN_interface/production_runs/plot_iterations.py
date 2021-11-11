@@ -10,7 +10,6 @@ import niceplots
 from INN_interface.production_runs.postprocessing_tools import load_cases
 
 
-case_names = ['00', '12']
 data_names = [
     "tcc.blade_cost",
     "tcc.rotor_cost",
@@ -19,7 +18,7 @@ data_names = [
     "financese.lcoe",
     ]
 
-all_data, optimization_logs = load_cases(case_names)
+all_data, optimization_logs = load_cases()
     
 n_cases = len(optimization_logs)
 n_indices = len(data_names)

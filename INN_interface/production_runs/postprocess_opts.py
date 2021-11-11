@@ -9,9 +9,9 @@ import openmdao.api as om
 
 from INN_interface.production_runs.postprocessing_tools import load_cases
 
-case_names = ['00', '12']
+# case_names = ['00', '12']
 
-all_data, optimization_logs = load_cases(case_names)
+all_data, optimization_logs = load_cases()
     
 n_cases = len(optimization_logs)
     
@@ -69,5 +69,5 @@ for idx, data in enumerate(all_data):
     
 plt.tight_layout()
 
-plt.show()
-# plt.savefig('opt_history.pdf')
+# plt.show()
+plt.savefig('opt_history.pdf')

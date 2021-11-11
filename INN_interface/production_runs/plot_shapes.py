@@ -27,6 +27,7 @@ for idx, data in enumerate(all_data):
         niceplots.adjust_spines(axarr[jdx])
         axarr[jdx].set_aspect('equal', 'box')
         axarr[jdx].set_xlim([0., 1.])
+        axarr[jdx].set_ylabel(f'AF index: {idx_to_plot}')
 
 axarr[0].legend(loc='best')    
 plt.show()
