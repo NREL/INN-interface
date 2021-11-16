@@ -59,10 +59,18 @@ for idx_animate in range(max_iterations):
 
             y = subdata[0]
             x = np.linspace(0., 1., len(y))
+            
+            if 'aoa' in data_name:
+                mask_value = 2.
+                y[y > mask_value] = np.nan
             axarr[jdx, 1].plot(x, y, color='gray')
             
             y = subdata[idx_animate]
             x = np.linspace(0., 1., len(y))
+            
+            if 'aoa' in data_name:
+                mask_value = 2.
+                y[y > mask_value] = np.nan
             axarr[jdx, 1].plot(x, y, label=case_names[idx])
             
             niceplots.adjust_spines(axarr[jdx, 1])
@@ -88,7 +96,7 @@ for idx_animate in range(max_iterations):
     axarr[-1, 1].set_xlabel('Nondimensional blade span')
     axarr[-1, 2].set_xlabel('Optimization iterations')
     
-    plt.savefig(f'animation/' + str(idx_animate).zfill(3) + '.png', dpi=600)
+    plt.savefig(f'animation/' + str(idx_animate).zfill(3) + '.png', dpi=300)
     
     plt.close()
     

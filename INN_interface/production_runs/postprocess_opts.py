@@ -43,7 +43,7 @@ limits = {
 
 n_keys = len(keys_to_plot)
 
-fig, axarr = plt.subplots(n_keys, n_cases, figsize=(30, 12))
+fig, axarr = plt.subplots(n_keys, n_cases, figsize=(40, 15))
 for idx, data in enumerate(all_data):
 
     for jdx, (key, dat_key) in enumerate(keys_to_plot.items()):
