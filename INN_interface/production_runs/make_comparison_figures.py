@@ -10,11 +10,11 @@ import niceplots
 from INN_interface.production_runs.postprocessing_tools import load_cases
 
 
-case_names = ['00', '12']
+case_names = ['03', '16']
 data_names = [
     "rotorse.theta",
     "blade.pa.chord_param",
-    "l/d",
+    "L/D",
 ]
 airfoil_indices = [19, 24, 29]
 
@@ -27,7 +27,7 @@ f, axarr = plt.subplots(n_indices, 1, figsize=(4, 1.5*n_indices), constrained_la
 
 for idx, data in enumerate(all_data):
     for jdx, data_name in enumerate(data_names):
-        if "l/d" in data_name:
+        if "L/D" in data_name:
             subdata = data["rotorse.ccblade.cl"][-1] / data["rotorse.ccblade.cd"][-1]
         else:
             subdata = data[data_name][-1]

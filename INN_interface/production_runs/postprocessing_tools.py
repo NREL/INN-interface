@@ -29,6 +29,7 @@ def load_cases(case_names=None):
         
     all_data = []
     for idx, log in enumerate(optimization_logs):
+        print(f"Loading case {idx} / {len(optimization_logs)}")
         data = {}
         cr = om.CaseReader(log)
         cases = cr.get_cases()
