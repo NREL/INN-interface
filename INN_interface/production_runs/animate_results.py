@@ -10,7 +10,7 @@ import niceplots
 from INN_interface.production_runs.postprocessing_tools import load_cases
 
 
-case_names = ['16']
+case_names = ['10']
 airfoil_indices = [19, 24, 29]
 data_names = [
     "financese.lcoe",
@@ -18,9 +18,14 @@ data_names = [
     "tcc.blade_cost",
     ]
 blade_data_names = [
-    "blade.run_inn_af.aoa_inn",
-    "blade.pa.chord_param",
-    "rotorse.ccblade.cl",
+    "rotorse.theta",
+    "rotorse.rp.powercurve.ax_induct_regII",
+    "rotorse.rp.powercurve.L_D",
+]
+powercurve_names = [
+    "rotorse.rp.powercurve.Cp_aero",
+    "rotorse.rp.powercurve.Ct_aero",
+    "rotorse.rp.powercurve.pitch",
 ]
 
 all_data, optimization_logs = load_cases(case_names)
@@ -37,7 +42,7 @@ Path("animation").mkdir(parents=True, exist_ok=True)
 
 for idx_animate in range(max_iterations):
     print(f'Animating frame {idx_animate+1}/{max_iterations}')
-    f, axarr = plt.subplots(n_indices, 3, figsize=(12, 1.5*n_indices), constrained_layout=True)
+    f, axarr = plt.subplots(n_indices, 4, figsize=(15, 1.5*n_indices), constrained_layout=True)
 
     # Airfoil shapes
     for idx, data in enumerate(all_data):
@@ -77,6 +82,23 @@ for idx_animate in range(max_iterations):
             axarr[jdx, 1].set_xlim([0., 1.])
             axarr[jdx, 1].set_ylabel(data_name.split('.')[-1])
             
+    # Values across powercurve
+    for idx, data in enumerate(all_data):
+        for jdx, data_name in enumerate(powercurve_names):
+            subdata = data[data_name]
+
+            y = subdata[0]
+            x = np.linspace(0., 1., len(y))
+            axarr[jdx, 2].plot(x, y, color='gray')
+            
+            y = subdata[idx_animate]
+            x = np.linspace(0., 1., len(y))
+            axarr[jdx, 2].plot(x, y, label=case_names[idx])
+            
+            niceplots.adjust_spines(axarr[jdx, 2])
+            axarr[jdx, 2].set_xlim([0., 1.])
+            axarr[jdx, 2].set_ylabel(data_name.split('.')[-1])
+            
     # Optimization histories
     for idx, data in enumerate(all_data):
         for jdx, data_name in enumerate(data_names):
@@ -84,17 +106,18 @@ for idx_animate in range(max_iterations):
             x = range(len(subdata))
             y = subdata
                 
-            axarr[jdx, 2].scatter(x[idx_animate], y[idx_animate], color='k', zorder=100)
-            axarr[jdx, 2].plot(x, y, label=case_names[idx])
-            niceplots.adjust_spines(axarr[jdx, 2])
-            axarr[jdx, 2].set_ylabel(data_name.split('.')[-1])
+            axarr[jdx, 3].scatter(x[idx_animate], y[idx_animate], color='k', zorder=100)
+            axarr[jdx, 3].plot(x, y, label=case_names[idx])
+            niceplots.adjust_spines(axarr[jdx, 3])
+            axarr[jdx, 3].set_ylabel(data_name.split('.')[-1])
             
             percent_change = float((y[idx_animate] - y[0]) / y[0]) * 100.
-            axarr[jdx, 2].annotate(f'{percent_change:.2f}% change', xy=(1.0, 0.5),
+            axarr[jdx, 3].annotate(f'{percent_change:.2f}% change', xy=(1.0, 0.5),
                 va="center", xycoords='axes fraction', ha='right')
 
     axarr[-1, 1].set_xlabel('Nondimensional blade span')
-    axarr[-1, 2].set_xlabel('Optimization iterations')
+    axarr[-1, 2].set_xlabel('Nondimensional velocity')
+    axarr[-1, 3].set_xlabel('Optimization iterations')
     
     plt.savefig(f'animation/' + str(idx_animate).zfill(3) + '.png', dpi=300)
     
