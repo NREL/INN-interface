@@ -10,7 +10,7 @@ import niceplots
 from INN_interface.production_runs.postprocessing_tools import load_cases
 
 
-case_names = ['10']
+case_names = ['21']
 airfoil_indices = [19, 24, 29]
 data_names = [
     "financese.lcoe",

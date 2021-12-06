@@ -10,7 +10,7 @@ import niceplots
 from INN_interface.production_runs.postprocessing_tools import load_cases
 
 
-case_names = ['00', '12']
+case_names = ['03', '21']
 data_names = ["inn_af.L_D_opt", "inn_af.c_d_opt", "inn_af.r_thick_opt", "blade.run_inn_af.aoa_inn"]
 
 all_data, optimization_logs = load_cases(case_names)

@@ -6,6 +6,7 @@ import numpy as np
 import openmdao.api as om
 import matplotlib.pyplot as plt
 import niceplots
+from time import time
 
 
 def load_cases(case_names=None):
@@ -27,12 +28,19 @@ def load_cases(case_names=None):
                     
         optimization_logs = case_filenames
         
+    s = time()
     all_data = []
     for idx, log in enumerate(optimization_logs):
         print(f"Loading case {idx} / {len(optimization_logs)}")
         data = {}
+        print('1', time() - s)
+        s = time()
         cr = om.CaseReader(log)
+        print('2', time() - s)
+        s = time()
         cases = cr.get_cases()
+        print('3', time() - s)
+        s = time()
         
         for case in cases:
             for key in case.outputs.keys():
@@ -40,7 +48,9 @@ def load_cases(case_names=None):
                     # print(key)
                     data[key] = []
                 data[key].append(case.outputs[key])
-                
+        print('4', time() - s)
+        s = time()
+        
         for key in data.keys():
             data[key] = np.array(data[key])
             

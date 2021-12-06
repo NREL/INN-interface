@@ -10,7 +10,7 @@ import niceplots
 from INN_interface.production_runs.postprocessing_tools import load_cases
 
 
-case_names = ['03', '16']
+case_names = ['03', '21']
 data_names = [
     "rotorse.theta",
     "blade.pa.chord_param",
