@@ -8,8 +8,15 @@ import matplotlib.pyplot as plt
 import niceplots
 from time import time
 
+import hashlib
+import dill
+from pathlib import Path
+
 
 def load_cases(case_names=None):
+
+    Path("saved_results").mkdir(parents=True, exist_ok=True)
+    
     optimization_logs = []
 
     # Simply gather all of the sql files
@@ -32,27 +39,30 @@ def load_cases(case_names=None):
     all_data = []
     for idx, log in enumerate(optimization_logs):
         print(f"Loading case {idx} / {len(optimization_logs)}")
-        data = {}
-        print('1', time() - s)
-        s = time()
-        cr = om.CaseReader(log)
-        print('2', time() - s)
-        s = time()
-        cases = cr.get_cases()
-        print('3', time() - s)
-        s = time()
+
+        readable_hash = hashlib.md5(str.encode(log)).hexdigest()
+     
+        filename = os.path.join('saved_results', f'{readable_hash}.pkl')
         
-        for case in cases:
-            for key in case.outputs.keys():
-                if key not in data.keys():
-                    # print(key)
-                    data[key] = []
-                data[key].append(case.outputs[key])
-        print('4', time() - s)
-        s = time()
-        
-        for key in data.keys():
-            data[key] = np.array(data[key])
+        if os.path.exists(filename):
+            with open(filename, 'rb') as f:
+                data = dill.load(f)
+        else:
+            data = {}
+            cr = om.CaseReader(log)
+            cases = cr.get_cases()
+            
+            for case in cases:
+                for key in case.outputs.keys():
+                    if key not in data.keys():
+                        data[key] = []
+                    data[key].append(case.outputs[key])
+            
+            for key in data.keys():
+                data[key] = np.array(data[key])
+                
+            with open(filename, 'wb') as f:
+                dill.dump(data, f)
             
         all_data.append(data)
         
@@ -60,7 +70,7 @@ def load_cases(case_names=None):
     
     
 if __name__ == "__main__":
-    load_cases(['00_'])
+    load_cases()
     
     
 # rotorse.ccblade.Py_b
