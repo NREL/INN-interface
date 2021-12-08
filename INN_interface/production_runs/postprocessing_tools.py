@@ -61,6 +61,12 @@ def load_cases(case_names=None):
             for key in data.keys():
                 data[key] = np.array(data[key])
                 
+            # Manually compute t/c and add
+            coords = data['blade.run_inn_af.coord_xy_interp']
+            maxc = np.max(coords[:, :, :, 1], axis=2)
+            minc = np.min(coords[:, :, :, 1], axis=2)
+            data['t/c'] = maxc - minc
+                
             with open(filename, 'wb') as f:
                 dill.dump(data, f)
             

@@ -10,13 +10,13 @@ import niceplots
 from INN_interface.production_runs.postprocessing_tools import load_cases
 
 
-case_names = ['03', '21']
+case_names = ['17']
 labels = ['WISDEM', 'INN-WISDEM']
 data_names = [
     "rotorse.theta",
     "blade.pa.chord_param",
     "L/D",
-    # 'blade.interp_airfoils.r_thick_interp',
+    'blade.interp_airfoils.r_thick_interp',
 ]
 airfoil_indices = [19, 24, 29]
 
