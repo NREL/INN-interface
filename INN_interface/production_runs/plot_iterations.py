@@ -17,8 +17,10 @@ data_names = [
     "rotorse.rp.AEP",
     "financese.lcoe",
     ]
+    
+case_names = ['03', '16']
 
-all_data, optimization_logs = load_cases()
+all_data, optimization_logs = load_cases(case_names)
     
 n_cases = len(optimization_logs)
 n_indices = len(data_names)
@@ -36,5 +38,5 @@ for idx, data in enumerate(all_data):
 
 axarr[0].legend(loc='best')    
 axarr[-1].set_xlabel('Optimization iterations')
-plt.show()
+plt.savefig('iterations.png')
 

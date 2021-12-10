@@ -43,9 +43,9 @@ c = {'wt.wt_init.blade.opt_var.chord_opt': np.array([5.2       , 5.75402153, 5.3
         0.27938159]),
  'wt.wt_init.inn_af.z': np.array([0.41918037, 0.76084641, 0.158474  ])}
 
-all_iters = [a, b, c]
+all_iters = [a, b]
 
-fig, axarr = plt.subplots(7, 1)
+fig, axarr = plt.subplots(7, 1, figsize=(4, 12))
 for jdx, it in enumerate(all_iters):
     for idx, key in enumerate(it):
         dat = it[key]
@@ -54,4 +54,5 @@ for jdx, it in enumerate(all_iters):
         axarr[idx].set_ylabel(key.split('.')[-1])
 plt.legend()
         
-plt.show()
+plt.tight_layout()
+plt.savefig('compare_iterations.png')
