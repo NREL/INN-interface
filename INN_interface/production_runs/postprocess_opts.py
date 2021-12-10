@@ -9,7 +9,7 @@ import openmdao.api as om
 
 from INN_interface.production_runs.postprocessing_tools import load_cases
 
-# case_names = ['03', '21']
+# case_names = ['01', '10']
 
 all_data, optimization_logs = load_cases()
     
@@ -43,7 +43,7 @@ limits = {
 
 n_keys = len(keys_to_plot)
 
-fig, axarr = plt.subplots(n_keys, n_cases, figsize=(40, 15))
+fig, axarr = plt.subplots(n_keys, n_cases, figsize=(len(optimization_logs)*2.8, 15))
 for idx, data in enumerate(all_data):
 
     for jdx, (key, dat_key) in enumerate(keys_to_plot.items()):

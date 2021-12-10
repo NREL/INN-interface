@@ -13,7 +13,7 @@ import dill
 from pathlib import Path
 
 
-def load_cases(case_names=None):
+def load_cases(case_names=None, just_print_names=False):
 
     Path("saved_results").mkdir(parents=True, exist_ok=True)
     
@@ -43,6 +43,10 @@ def load_cases(case_names=None):
         readable_hash = hashlib.md5(str.encode(log)).hexdigest()
      
         filename = os.path.join('saved_results', f'{readable_hash}.pkl')
+        
+        if just_print_names:
+            print(log, readable_hash)
+            continue
         
         if os.path.exists(filename):
             with open(filename, 'rb') as f:
@@ -76,7 +80,7 @@ def load_cases(case_names=None):
     
     
 if __name__ == "__main__":
-    load_cases()
+    load_cases(just_print_names=False)
     
     
 # rotorse.ccblade.Py_b
