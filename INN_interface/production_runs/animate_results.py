@@ -10,7 +10,7 @@ import niceplots
 from INN_interface.production_runs.postprocessing_tools import load_cases
 
 
-case_names = ['17']
+case_names = ['16']
 airfoil_indices = [19, 24, 29]
 data_names = [
     "financese.lcoe",
@@ -18,9 +18,9 @@ data_names = [
     "tcc.blade_cost",
     ]
 blade_data_names = [
-    "rotorse.theta",
+    # "rotorse.theta",
     "rotorse.rp.powercurve.ax_induct_regII",
-    # "rotorse.rp.powercurve.L_D",
+    "rotorse.rp.powercurve.L_D",
     't/c',
 ]
 powercurve_names = [

@@ -10,15 +10,15 @@ import niceplots
 from INN_interface.production_runs.postprocessing_tools import load_cases
 
 
-case_names = ['17']
+case_names = ['05', '18']
 labels = ['WISDEM', 'INN-WISDEM']
 data_names = [
     "rotorse.theta",
     "blade.pa.chord_param",
     "L/D",
-    'blade.interp_airfoils.r_thick_interp',
+    't/c',
 ]
-airfoil_indices = [19, 24, 29]
+airfoil_indices = [19, 24, 28, 29]
 
 all_data, optimization_logs = load_cases(case_names)
     

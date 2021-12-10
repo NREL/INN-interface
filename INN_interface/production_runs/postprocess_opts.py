@@ -9,9 +9,9 @@ import openmdao.api as om
 
 from INN_interface.production_runs.postprocessing_tools import load_cases
 
-# case_names = ['01', '10']
+case_names = ['05', '18']
 
-all_data, optimization_logs = load_cases()
+all_data, optimization_logs = load_cases(case_names)
     
 n_cases = len(optimization_logs)
     
