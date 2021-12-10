@@ -17,8 +17,9 @@ data_names = [
     "blade.pa.chord_param",
     "L/D",
     't/c',
+    "blade.internal_structure_2d_fem.layer_thickness",
 ]
-airfoil_indices = [19, 24, 28, 29]
+airfoil_indices = [19, 24, 28]
 
 all_data, optimization_logs = load_cases(case_names)
     
@@ -31,6 +32,8 @@ for idx, data in enumerate(all_data):
     for jdx, data_name in enumerate(data_names):
         if "L/D" in data_name:
             subdata = data["rotorse.ccblade.cl"][-1] / data["rotorse.ccblade.cd"][-1]
+        elif 'layer_thickness' in data_name:
+            subdata = data[data_name][-1, 2]
         else:
             subdata = data[data_name][-1]
         x = np.linspace(0., 1., len(subdata))

@@ -58,7 +58,7 @@ design_variables:
                 n_opt: 6
                 max_decrease: 0.5
                 max_increase: 2.0
-                index_star: 2
+                index_start: 2
                 index_end: 5
             spar_cap_ps:
                 flag: True
