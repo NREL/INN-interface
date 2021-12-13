@@ -18,7 +18,7 @@ data_names = [
     "financese.lcoe",
     ]
     
-case_names = ['03', '16']
+case_names = ['05', '19']
 
 all_data, optimization_logs = load_cases(case_names)
     
