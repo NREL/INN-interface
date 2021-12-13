@@ -1,5 +1,5 @@
 import numpy as np
-from INN_interface.INN_pga import INN
+from INN_interface.INN import INN
 from INN_interface import utils
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
