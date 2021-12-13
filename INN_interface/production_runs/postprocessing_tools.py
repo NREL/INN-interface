@@ -60,7 +60,7 @@ def load_cases(case_names=None, just_print_names=False):
                 for key in case.outputs.keys():
                     if key not in data.keys():
                         data[key] = []
-                        print(key)
+                        # print(key)
                     data[key].append(case.outputs[key])
             
             for key in data.keys():

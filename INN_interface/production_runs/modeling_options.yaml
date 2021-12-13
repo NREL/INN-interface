@@ -11,7 +11,7 @@ WISDEM:
         inn_af_max_t/c: 0.30
         inn_af_min_t/c: 0.20
         n_pc: 20
-        regulation_reg_III: False
+        # regulation_reg_III: False
     DriveSE:
         flag: True
     TowerSE:             # Options of TowerSE module
