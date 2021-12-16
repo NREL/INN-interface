@@ -38,5 +38,5 @@ for idx, data in enumerate(all_data):
 
 axarr[0].legend(loc='best')    
 axarr[-1].set_xlabel('Optimization iterations')
-plt.savefig('iterations.png')
+plt.savefig('iterations.pdf')
 

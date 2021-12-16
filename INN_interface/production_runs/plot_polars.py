@@ -17,8 +17,8 @@ data_names = [
     "l/d",
     "shape",
 ]
-airfoil_indices = [20, 25, 28]
-airfoil_labels = [.4483, .6897, .8621]
+airfoil_indices = [20, 25, 26, 27, 28]
+airfoil_labels = [.4483, .6897, 0.73, 0.8, .8621]
 n_aoa = 200
 opt_idx = -1
 
@@ -44,7 +44,7 @@ aoa = np.rad2deg(aoa)
 
 all_data, optimization_logs = load_cases(case_names)
     
-f, axarr = plt.subplots(len(data_names), 3, figsize=(10, 6), constrained_layout=True)
+f, axarr = plt.subplots(len(data_names), len(airfoil_indices), figsize=(10, 6), constrained_layout=True)
 
 for i, idx in enumerate(airfoil_indices):
     for j, data_name in enumerate(data_names):
@@ -62,6 +62,9 @@ for i, idx in enumerate(airfoil_indices):
                 ax.plot(xy[idx, :, 0], xy[idx, :, 1], clip_on=False)
             else:
                 ax.plot(aoa, af, label=case_labels[k])
+                op_aoa = np.rad2deg(all_data[k]["blade.run_inn_af.aoa_inn"][opt_idx][idx])
+                op_val = np.interp(op_aoa, aoa, af)
+                ax.scatter(op_aoa, op_val, clip_on=False, s=20)
                 ax.set_xlim(left=-4, right=20)
                 ax.set_xlabel("Angle of Attack (deg)")
             
@@ -84,7 +87,9 @@ for i, idx in enumerate(airfoil_indices):
                 ax.set_xlim(left=0.0, right=1.0)
                 ax.set_ylim(top=0.2, bottom=-0.2)
                 ax.set_axis_off()
+                
+            niceplots.adjust_spines(ax)
             
 plt.tight_layout()
 
-plt.show()
+plt.savefig('polars.pdf')

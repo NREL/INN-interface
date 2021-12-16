@@ -68,9 +68,10 @@ def load_cases(case_names=None, just_print_names=False):
                 
             # Manually compute t/c and add
             coords = data['blade.run_inn_af.coord_xy_interp']
-            maxc = np.max(coords[:, :, :, 1], axis=2)
-            minc = np.min(coords[:, :, :, 1], axis=2)
-            data['t/c'] = maxc - minc
+            lower = coords[:, :, :100, 1]
+            upper = coords[:, :, 100:, 1][::-1]
+            diff = np.max(upper - lower)
+            data['t/c'] = diff
                 
             with open(filename, 'wb') as f:
                 dill.dump(data, f)

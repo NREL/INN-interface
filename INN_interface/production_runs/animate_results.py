@@ -89,15 +89,15 @@ for idx_animate in range(max_iterations):
             subdata = data[data_name]
 
             y = subdata[0]
-            x = np.linspace(0., 1., len(y))
+            x = data["rotorse.rp.powercurve.V"][0]
             axarr[jdx, 2].plot(x, y, color='gray')
             
             y = subdata[idx_animate]
-            x = np.linspace(0., 1., len(y))
+            x = data["rotorse.rp.powercurve.V"][idx_animate]
             axarr[jdx, 2].plot(x, y, label=case_names[idx])
             
             niceplots.adjust_spines(axarr[jdx, 2])
-            axarr[jdx, 2].set_xlim([0., 1.])
+            axarr[jdx, 2].set_xlim([3., 25.])
             axarr[jdx, 2].set_ylabel(data_name.split('.')[-1])
             
     # Optimization histories
