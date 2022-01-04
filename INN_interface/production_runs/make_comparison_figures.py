@@ -20,6 +20,7 @@ data_names = [
     "blade.ps.layer_thickness_param",
     "rotorse.stall_check.no_stall_constraint",
     "blade.compute_reynolds.Re",
+    "rotorse.rp.powercurve.ax_induct_regII",
 ]
 airfoil_indices = [19, 24, 28]
 

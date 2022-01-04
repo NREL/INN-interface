@@ -28,8 +28,8 @@ def load_cases(case_names=None, just_print_names=False):
     
     if case_names is not None:
         case_filenames = []
-        for log in optimization_logs:
-            for case_name in case_names:
+        for case_name in case_names:
+            for log in optimization_logs:
                 if case_name in log:
                     case_filenames.append(log)
                     
@@ -70,7 +70,7 @@ def load_cases(case_names=None, just_print_names=False):
             coords = data['blade.run_inn_af.coord_xy_interp']
             lower = coords[:, :, :100, 1]
             upper = coords[:, :, 100:, 1][::-1]
-            diff = np.max(upper - lower)
+            diff = np.max(upper - lower, axis=2)
             data['t/c'] = diff
                 
             with open(filename, 'wb') as f:

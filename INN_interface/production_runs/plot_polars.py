@@ -18,7 +18,7 @@ data_names = [
     "shape",
 ]
 airfoil_indices = [20, 25, 26, 27, 28]
-airfoil_labels = [.4483, .6897, 0.73, 0.8, .8621]
+airfoil_labels = [.448, .690, 0.73, 0.8, .862]
 n_aoa = 200
 opt_idx = -1
 
@@ -44,7 +44,7 @@ aoa = np.rad2deg(aoa)
 
 all_data, optimization_logs = load_cases(case_names)
     
-f, axarr = plt.subplots(len(data_names), len(airfoil_indices), figsize=(10, 6), constrained_layout=True)
+f, axarr = plt.subplots(len(data_names), len(airfoil_indices), figsize=(12, 6), constrained_layout=True)
 
 for i, idx in enumerate(airfoil_indices):
     for j, data_name in enumerate(data_names):
