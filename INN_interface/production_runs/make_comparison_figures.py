@@ -18,9 +18,19 @@ data_names = [
     "L/D",
     't/c',
     "blade.ps.layer_thickness_param",
-    "rotorse.stall_check.no_stall_constraint",
-    "blade.compute_reynolds.Re",
-    "rotorse.rp.powercurve.ax_induct_regII",
+    # "rotorse.stall_check.no_stall_constraint",
+    # "blade.compute_reynolds.Re",
+    # "rotorse.rp.powercurve.ax_induct_regII",
+]
+nice_data_names = [
+    "Twist, deg",
+    "Chord, m",
+    "L/D",
+    "t/c ratio",
+    "Sparcap thickness, m",
+    # "rotorse.stall_check.no_stall_constraint",
+    # "blade.compute_reynolds.Re",
+    # "rotorse.rp.powercurve.ax_induct_regII",
 ]
 airfoil_indices = [19, 24, 28]
 
@@ -45,7 +55,7 @@ for idx, data in enumerate(all_data):
         axarr[jdx].plot(x, y, label=labels[idx], clip_on=False)
         niceplots.adjust_spines(axarr[jdx])
         axarr[jdx].set_xlim([0., 1.])
-        axarr[jdx].set_ylabel(data_name.split('.')[-1])
+        axarr[jdx].set_ylabel(nice_data_names[jdx].split('.')[-1], rotation=0, ha='left', labelpad=100)
 
 axarr[0].legend(loc='best', fontsize=10)    
 axarr[-1].set_xlabel('Nondimensional blade span')

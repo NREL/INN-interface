@@ -17,8 +17,8 @@ data_names = [
     "l/d",
     "shape",
 ]
-airfoil_indices = [20, 25, 26, 27, 28]
-airfoil_labels = [.448, .690, 0.73, 0.8, .862]
+airfoil_indices = [20, 26, 27, 28]
+airfoil_labels = [.448, 0.73, 0.8, .862]
 n_aoa = 200
 opt_idx = -1
 
@@ -71,16 +71,16 @@ for i, idx in enumerate(airfoil_indices):
             if 'cl' in data_name:
                 ax.set_ylim(-0.2, 2.75)
                 if i==0:
-                    ax.legend(fontsize=8)
                     ax.set_ylabel("CL")
                 ax.set_title("Span Location {:2.2%}".format(airfoil_labels[i]))
             elif 'cd' in data_name:
                 ax.set_yscale('log')
                 ax.set_ylim(0.005, 0.1)
                 if i==0:
+                    ax.legend(fontsize=8)
                     ax.set_ylabel("CD")
             elif 'l/d' in data_name:
-                ax.set_ylim(top=130, bottom=-20)
+                ax.set_ylim(top=140, bottom=-20)
                 if i==0:
                     ax.set_ylabel("L/D")
             elif 'shape' in data_name:
