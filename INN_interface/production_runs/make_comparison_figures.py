@@ -26,7 +26,7 @@ nice_data_names = [
     "Twist, deg",
     "Chord, m",
     "L/D",
-    "t/c ratio",
+    "Thickness/chord",
     "Sparcap thickness, m",
     # "rotorse.stall_check.no_stall_constraint",
     # "blade.compute_reynolds.Re",
@@ -40,7 +40,7 @@ n_cases = len(optimization_logs)
 n_data = len(data_names)
 n_indices = len(airfoil_indices)
     
-f, axarr = plt.subplots(n_data, 1, figsize=(4, 1.5*n_data), constrained_layout=True)
+f, axarr = plt.subplots(n_data, 1, figsize=(6, 1.5*n_data), constrained_layout=True)
 
 for idx, data in enumerate(all_data):
     for jdx, data_name in enumerate(data_names):
@@ -53,10 +53,17 @@ for idx, data in enumerate(all_data):
         x = np.linspace(0., 1., len(subdata))
         y = subdata
         axarr[jdx].plot(x, y, label=labels[idx], clip_on=False)
+        
+        if "theta" in data_name and idx==0:
+            x = data["blade.opt_var.s_opt_twist"][-1][2:]
+            y = data["blade.opt_var.twist_opt"][-1][2:]
+            axarr[jdx].scatter(x, y, s=20)
+        
         niceplots.adjust_spines(axarr[jdx])
         axarr[jdx].set_xlim([0., 1.])
-        axarr[jdx].set_ylabel(nice_data_names[jdx].split('.')[-1], rotation=0, ha='left', labelpad=100)
+        axarr[jdx].set_ylabel(nice_data_names[jdx].split('.')[-1], rotation=0, ha='left', labelpad=112)
 
+f.align_ylabels(axarr)
 axarr[0].legend(loc='best', fontsize=10)    
 axarr[-1].set_xlabel('Nondimensional blade span')
 plt.savefig('span_quantities.pdf')
