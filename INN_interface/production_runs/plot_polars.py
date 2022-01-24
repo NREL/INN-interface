@@ -7,18 +7,16 @@ import matplotlib.pyplot as plt
 import niceplots
 
 from INN_interface.production_runs.postprocessing_tools import load_cases
+from INN_interface.production_runs.final_cases import case_names, labels
 
-
-case_names = ['05', '19']
-case_labels = ['WISDEM', 'INN-WISDEM']
 data_names = [
     "blade.run_inn_af.cl_interp",
     "blade.run_inn_af.cd_interp",
     "l/d",
     "shape",
 ]
-airfoil_indices = [20, 26, 27, 28]
-airfoil_labels = [.448, 0.73, 0.8, .862]
+airfoil_indices = [15, 21, 24]
+airfoil_labels = [i / 29 for i in airfoil_indices]
 n_aoa = 200
 opt_idx = -1
 
@@ -43,6 +41,8 @@ aoa = np.unique(
 aoa = np.rad2deg(aoa)
 
 all_data, optimization_logs = load_cases(case_names)
+
+colors = plt.rcParams['axes.prop_cycle'].by_key()['color'] * 5
     
 f, axarr = plt.subplots(len(data_names), len(airfoil_indices), figsize=(12, 6), constrained_layout=True)
 
@@ -61,7 +61,7 @@ for i, idx in enumerate(airfoil_indices):
             if 'shape' in data_name:
                 ax.plot(xy[idx, :, 0], xy[idx, :, 1], clip_on=False)
             else:
-                ax.plot(aoa, af, label=case_labels[k])
+                ax.plot(aoa, af, label=labels[k], clip_on=False)
                 op_aoa = np.rad2deg(all_data[k]["blade.run_inn_af.aoa_inn"][opt_idx][idx])
                 op_val = np.interp(op_aoa, aoa, af)
                 ax.scatter(op_aoa, op_val, clip_on=False, s=20)
@@ -71,25 +71,30 @@ for i, idx in enumerate(airfoil_indices):
             if 'cl' in data_name:
                 ax.set_ylim(-0.2, 2.75)
                 if i==0:
-                    ax.set_ylabel("CL")
+                    ax.annotate(labels[0], xy=(0.05, .8), fontsize=9,
+                        va="center", xycoords='axes fraction', ha='left', color=colors[0])
+                    ax.annotate(labels[1], xy=(0.16, 0.1), fontsize=9,
+                        va="center", xycoords='axes fraction', ha='left', color=colors[1])
+                    ax.set_ylabel("CL", rotation=0)
                 ax.set_title("Span Location {:2.2%}".format(airfoil_labels[i]))
             elif 'cd' in data_name:
                 ax.set_yscale('log')
                 ax.set_ylim(0.005, 0.1)
                 if i==0:
-                    ax.legend(fontsize=8)
-                    ax.set_ylabel("CD")
+                    ax.set_ylabel("CD", rotation=0)
             elif 'l/d' in data_name:
                 ax.set_ylim(top=140, bottom=-20)
                 if i==0:
-                    ax.set_ylabel("L/D")
+                    ax.set_ylabel("L/D", rotation=0)
             elif 'shape' in data_name:
                 ax.set_xlim(left=0.0, right=1.0)
                 ax.set_ylim(top=0.2, bottom=-0.2)
                 ax.set_axis_off()
+                ax.axis('equal')
                 
             niceplots.adjust_spines(ax)
             
-plt.tight_layout()
+f.align_ylabels(axarr)
+# plt.tight_layout()
 
 plt.savefig('polars.pdf')

@@ -8,8 +8,10 @@ import matplotlib.pyplot as plt
 import niceplots
 
 from INN_interface.production_runs.postprocessing_tools import load_cases
+from INN_interface.production_runs.final_cases import case_names, labels
 
 
+colors = plt.rcParams['axes.prop_cycle'].by_key()['color'] * 5
 data_names = [
     "tcc.blade_cost",
     # "tcc.rotor_cost",
@@ -25,8 +27,6 @@ nice_labels = [
     "LCOE, $/MWh",
     ]
     
-case_names = ['05', '19']
-nice_case_names = ['WISDEM', 'INN-WISDEM']
 
 all_data, optimization_logs = load_cases(case_names)
     
@@ -48,11 +48,16 @@ for idx, data in enumerate(all_data):
         elif 'lcoe' in data_name:
             y *= 1.e3
             
-        axarr[jdx].plot(x, y, label=nice_case_names[idx], zorder=-idx)
+        axarr[jdx].plot(x, y, label=labels[idx], zorder=-idx)
         niceplots.adjust_spines(axarr[jdx])
         axarr[jdx].set_ylabel(nice_labels[jdx], rotation=0, ha='left', labelpad=90)
         
-axarr[0].legend(loc='best')    
+        if idx==0 and jdx==0:
+            axarr[jdx].annotate(labels[0], xy=(0.35, .56), fontsize=10,
+                va="center", xycoords='axes fraction', ha='left', color=colors[0])
+            axarr[jdx].annotate(labels[1], xy=(0.45, 0.3), fontsize=10,
+                va="center", xycoords='axes fraction', ha='left', color=colors[1])
+        
 axarr[-1].set_xlabel('Optimization iterations')
 plt.savefig('iterations.pdf')
 
