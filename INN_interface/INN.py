@@ -40,9 +40,9 @@ class INN():
         l_in = tf.keras.Input(shape=(lM,))
 
         this_directory = os.path.abspath(os.path.dirname(__file__))
-        airfoil_path = os.path.join(this_directory, 'model/PGA')
+        airfoil_path = os.path.join(this_directory, 'model')
 
-        self.scale_factors = load_scale_factors('PGA')
+        self.scale_factors = load_scale_factors(airfoil_path)
         self.model = InvNet(x_in, y_in, c_in, f_in, z_in, l_in,
                             input_shape=tf.TensorShape([xM+yM]),
                             n_layers=15, W=np.eye(xM-1),

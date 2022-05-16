@@ -1,7 +1,6 @@
+import os
 import h5py
 import numpy as np
-import os
-from INN_interface.cst import *
 
 def norm_data(data, scale_factor=None, scale_type='standard'):
     # Function to normalize the input data
@@ -65,11 +64,11 @@ def save_scale_factors(af_name, scale_factors):
             else:
                 assert False, 'Bad scale type'
 
-def load_scale_factors(af_name):
+def load_scale_factors(filepath):
     # Function to load previously saved scale_factors
     scale_factors = {}
     this_directory = os.path.abspath(os.path.dirname(__file__))
-    input_file_sf = os.path.join(this_directory, "model/" + af_name + '/scale_factors.h5')
+    input_file_sf = os.path.join(this_directory, filepath+'/scale_factors.h5')
     with h5py.File(input_file_sf, 'r') as f:
         for key in f:
             f_key = f[key]
@@ -80,13 +79,5 @@ def load_scale_factors(af_name):
 
     return scale_factors
 
-
-def get_airfoil_shape(af_cst):
-    BP = 8
-    af = AirfoilShape.from_cst_parameters( af_cst[0:BP+1],
-                                           af_cst[2*(BP+1)],
-                                           af_cst[BP+1:2*(BP+1)],
-                                           af_cst[2*(BP+1)+1] )
-    return af.xco, af.yco
 
 
