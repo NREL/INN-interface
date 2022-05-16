@@ -29,6 +29,17 @@ powercurve_names = [
     "rotorse.rp.powercurve.pitch",
 ]
 
+nice_data_names = [
+    "LCOE, $/MWh",
+    "AEP, GWh",
+    "Blade cost, $M",
+]
+nice_blade_data_names = [
+    "Axial induction",
+    "Lift to drag",
+    "Thickness to chord",
+]
+
 all_data, optimization_logs = load_cases(case_names)
     
 n_cases = len(optimization_logs)
@@ -43,19 +54,21 @@ Path("animation").mkdir(parents=True, exist_ok=True)
 
 for idx_animate in range(max_iterations):
     print(f'Animating frame {idx_animate+1}/{max_iterations}')
-    f, axarr = plt.subplots(n_indices, 4, figsize=(15, 1.5*n_indices), constrained_layout=True)
+    f, axarr = plt.subplots(n_indices, 3, figsize=(11, 1.5*n_indices), constrained_layout=True)
+    f.set_constrained_layout(False)
 
     # Airfoil shapes
     for idx, data in enumerate(all_data):
         for jdx, idx_to_plot in enumerate(airfoil_indices):
             xy = data['blade.run_inn_af.coord_xy_interp'][0, :, :, :]
-            axarr[jdx, 0].plot(xy[idx_to_plot, :, 0], xy[idx_to_plot, :, 1], color='gray')
+            axarr[jdx, 0].plot(xy[idx_to_plot, :, 0], xy[idx_to_plot, :, 1], color='gray', clip_on=False)
             
             xy = data['blade.run_inn_af.coord_xy_interp'][idx_animate, :, :, :]
-            axarr[jdx, 0].plot(xy[idx_to_plot, :, 0], xy[idx_to_plot, :, 1], label=case_names[idx])
+            axarr[jdx, 0].plot(xy[idx_to_plot, :, 0], xy[idx_to_plot, :, 1], label=case_names[idx], clip_on=False)
             niceplots.adjust_spines(axarr[jdx, 0])
             axarr[jdx, 0].set_aspect('equal', 'box')
             axarr[jdx, 0].set_xlim([0., 1.])
+            axarr[jdx, 0].set_ylim([-0.12, 0.12])
             axarr[jdx, 0].set_ylabel(f'AF index: {idx_to_plot}')
             
     # Values across blade span
@@ -69,7 +82,7 @@ for idx_animate in range(max_iterations):
             if 'aoa' in data_name:
                 mask_value = 2.
                 y[y > mask_value] = np.nan
-            axarr[jdx, 1].plot(x, y, color='gray')
+            axarr[jdx, 1].plot(x, y, color='gray', clip_on=False)
             
             y = subdata[idx_animate]
             x = np.linspace(0., 1., len(y))
@@ -77,48 +90,62 @@ for idx_animate in range(max_iterations):
             if 'aoa' in data_name:
                 mask_value = 2.
                 y[y > mask_value] = np.nan
-            axarr[jdx, 1].plot(x, y, label=case_names[idx])
+            axarr[jdx, 1].plot(x, y, label=case_names[idx], clip_on=False)
             
             niceplots.adjust_spines(axarr[jdx, 1])
             axarr[jdx, 1].set_xlim([0., 1.])
-            axarr[jdx, 1].set_ylabel(data_name.split('.')[-1])
+            axarr[jdx, 1].set_ylabel(nice_blade_data_names[jdx])
             
-    # Values across powercurve
-    for idx, data in enumerate(all_data):
-        for jdx, data_name in enumerate(powercurve_names):
-            subdata = data[data_name]
-
-            y = subdata[0]
-            x = data["rotorse.rp.powercurve.V"][0]
-            axarr[jdx, 2].plot(x, y, color='gray')
+            if 'induct' in data_name:
+                axarr[jdx, 1].set_ylim([0., 0.55])
+            elif 'L_D' in data_name:
+                axarr[jdx, 1].set_ylim([0., 120])
+            elif 't/c' in data_name:
+                axarr[jdx, 1].set_ylim([0., 1.])
             
-            y = subdata[idx_animate]
-            x = data["rotorse.rp.powercurve.V"][idx_animate]
-            axarr[jdx, 2].plot(x, y, label=case_names[idx])
-            
-            niceplots.adjust_spines(axarr[jdx, 2])
-            axarr[jdx, 2].set_xlim([3., 25.])
-            axarr[jdx, 2].set_ylabel(data_name.split('.')[-1])
+    # # Values across powercurve
+    # for idx, data in enumerate(all_data):
+    #     for jdx, data_name in enumerate(powercurve_names):
+    #         subdata = data[data_name]
+    # 
+    #         y = subdata[0]
+    #         x = data["rotorse.rp.powercurve.V"][0]
+    #         axarr[jdx, 2].plot(x, y, color='gray')
+    # 
+    #         y = subdata[idx_animate]
+    #         x = data["rotorse.rp.powercurve.V"][idx_animate]
+    #         axarr[jdx, 2].plot(x, y, label=case_names[idx])
+    # 
+    #         niceplots.adjust_spines(axarr[jdx, 2])
+    #         axarr[jdx, 2].set_xlim([3., 25.])
+    #         axarr[jdx, 2].set_ylabel(data_name.split('.')[-1])
             
     # Optimization histories
     for idx, data in enumerate(all_data):
         for jdx, data_name in enumerate(data_names):
             subdata = data[data_name]
             x = range(len(subdata))
-            y = subdata
+            
+            if 'lcoe' in data_name:
+                y = subdata * 1000.
+            elif 'cost' in data_name:
+                y = subdata / 1.e6
+            else:
+                y = subdata
                 
-            axarr[jdx, 3].scatter(x[idx_animate], y[idx_animate], color='k', zorder=100)
-            axarr[jdx, 3].plot(x, y, label=case_names[idx])
-            niceplots.adjust_spines(axarr[jdx, 3])
-            axarr[jdx, 3].set_ylabel(data_name.split('.')[-1])
+            axarr[jdx, -1].scatter(x[idx_animate], y[idx_animate], color='k', zorder=100)
+            axarr[jdx, -1].plot(x, y, label=case_names[idx])
+            niceplots.adjust_spines(axarr[jdx, -1])
+            axarr[jdx, -1].set_ylabel(nice_data_names[jdx])
             
             percent_change = float((y[idx_animate] - y[0]) / y[0]) * 100.
-            axarr[jdx, 3].annotate(f'{percent_change:.2f}% change', xy=(1.0, 0.5),
+            axarr[jdx, -1].annotate(f'{percent_change:.2f}% change', xy=(1.0, 0.5),
                 va="center", xycoords='axes fraction', ha='right')
 
+    axarr[-1, 0].set_xlabel('Normalized airfoil shapes')
     axarr[-1, 1].set_xlabel('Nondimensional blade span')
-    axarr[-1, 2].set_xlabel('Nondimensional velocity')
-    axarr[-1, 3].set_xlabel('Optimization iterations')
+    # axarr[-1, 2].set_xlabel('Nondimensional velocity')
+    axarr[-1, -1].set_xlabel('Optimization iterations')
     
     plt.savefig(f'animation/' + str(idx_animate).zfill(3) + '.png', dpi=300)
     
