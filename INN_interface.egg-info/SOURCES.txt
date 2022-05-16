@@ -1,12 +1,10 @@
+LICENSE.txt
+NOTICE.txt
 README.md
 setup.py
-INN_interface/Grassmann.py
 INN_interface/INN.py
-INN_interface/INN_cst.py
 INN_interface/__init__.py
-INN_interface/cst.py
 INN_interface/inv_net.py
-INN_interface/train_net.py
 INN_interface/utils.py
 INN_interface.egg-info/PKG-INFO
 INN_interface.egg-info/SOURCES.txt

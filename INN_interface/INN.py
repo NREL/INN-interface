@@ -4,9 +4,9 @@ import tensorflow as tf
 from scipy import interpolate
 from scipy.optimize import lsq_linear
 from scipy.interpolate import interp1d
+from g2aero.Grassmann import *
 from INN_interface.inv_net import InvNet
 from INN_interface.utils import *
-from INN_interface.Grassmann import *
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 tf.keras.backend.set_floatx('float64')
@@ -78,7 +78,7 @@ class INN():
         landmarks[:, 200:, 1] -= landmarks[:, 200:, 0]*y_te_upper
 
         landmarks_gr, M_gr, b_gr = landmark_affine_transform(landmarks)
-        gr_coords = get_PGA_coordinates(landmarks_gr, self.karcher_mean, self.Vh)
+        gr_coords = get_PGA_coordinates(landmarks_gr, self.karcher_mean, self.Vh.T)
         
         pga = np.concatenate((gr_coords, M_gr[:, 1, 1].reshape((-1, 1)), y_te_upper-y_te_lower), axis=1)
 
@@ -97,7 +97,7 @@ class INN():
                           [-0.08200894864926603, pga_i[-2]]])
             b = np.array([[0.50124688, 0.]])
             gr_shape_i = perturb_gr_shape(self.Vh, self.karcher_mean, 
-                                          pga_i[:-2].reshape((1, -1)), scale=1)
+                                          pga_i[:-2].reshape((1, -1)))
             landmark_i = gr_shape_i @ M.T + b
             
             x_min = np.min(landmark_i[:, 0])
@@ -132,12 +132,12 @@ class INN():
 
         cst = np.empty((landmarks.shape[0], 20))
         for i, xy in enumerate(landmarks):
-            A = self.cst_matrix(xy[:200, 0], 0.5, 1.0, 8)
+            A = cst_matrix(xy[:200, 0], 0.5, 1.0, 8)
             A = np.hstack((A, xy[:200, 0].reshape(-1, 1)))
             out = lsq_linear(A, xy[:200, 1])
             cst_lower = out.x[:9]
 
-            A = self.cst_matrix(xy[200:, 0], 0.5, 1.0, 8)
+            A = cst_matrix(xy[200:, 0], 0.5, 1.0, 8)
             A = np.hstack((A, xy[200:, 0].reshape(-1, 1)))
             out = lsq_linear(A, xy[200:, 1])
             cst_upper = out.x[:9]
@@ -160,7 +160,7 @@ class INN():
             cst_upper = np.append(cst[9:18], cst[-1])
 
             order = np.size(cst_lower) - 2
-            amat = self.cst_matrix(x_c, 0.5, 1.0, order)
+            amat = cst_matrix(x_c, 0.5, 1.0, order)
             amat = np.hstack((amat, x_c.reshape(-1, 1)))
 
             y_lower = np.dot(amat, cst_lower)
@@ -172,18 +172,6 @@ class INN():
             landmarks[i] = np.hstack((x, y))
 
         return landmarks
-
-    def cst_matrix(self, x, n1=0.5, n2=1.0, order=8):
-        # Create CST matrix for fitting CST parameters to airfoil shape
-        x = np.asarray(x)
-        class_function = np.power(x, n1) * np.power((1.0 - x), n2)
-
-        K = comb(order, range(order + 1))
-        shape_function = np.empty((order + 1, x.shape[0]))
-        for i in range(order + 1):
-            shape_function[i, :] = K[i] * np.power(x, i) * np.power((1.0 - x), (order - i))
-
-        return (class_function * shape_function).T
 
     def sort_by_errs(self, x_inv, y_inv, y, c, f, z, N=1):
         # Sort shapes by total errors

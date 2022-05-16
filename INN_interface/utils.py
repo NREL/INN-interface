@@ -1,6 +1,7 @@
 import os
 import h5py
 import numpy as np
+from math import comb
 
 def norm_data(data, scale_factor=None, scale_type='standard'):
     # Function to normalize the input data
@@ -78,6 +79,17 @@ def load_scale_factors(filepath):
                 scale_factors[key] = [f_key['mu'][()], f_key['sigma'][()], 'standard']
 
     return scale_factors
+
+def cst_matrix(x, n1=0.5, n2=1.0, order=8):
+    # Create CST matrix for fitting CST parameters to airfoil shape
+    x = np.asarray(x)
+    class_function = np.power(x, n1) * np.power((1.0 - x), n2)
+
+    shape_function = np.empty((order + 1, x.shape[0]))
+    for i in range(order + 1):
+        shape_function[i, :] = comb(order, i)*np.power(x, i)*np.power((1.0 - x), (order - i))
+
+    return (class_function * shape_function).T
 
 
 
