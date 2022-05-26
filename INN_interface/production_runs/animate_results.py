@@ -55,7 +55,7 @@ Path("animation").mkdir(parents=True, exist_ok=True)
 for idx_animate in range(max_iterations):
     print(f'Animating frame {idx_animate+1}/{max_iterations}')
     f, axarr = plt.subplots(n_indices, 3, figsize=(11, 1.5*n_indices), constrained_layout=True)
-    f.set_constrained_layout(False)
+    # f.set_constrained_layout(False)
 
     # Airfoil shapes
     for idx, data in enumerate(all_data):
@@ -68,7 +68,7 @@ for idx_animate in range(max_iterations):
             niceplots.adjust_spines(axarr[jdx, 0])
             axarr[jdx, 0].set_aspect('equal', 'box')
             axarr[jdx, 0].set_xlim([0., 1.])
-            axarr[jdx, 0].set_ylim([-0.12, 0.12])
+            # axarr[jdx, 0].set_ylim([-0.12, 0.12])
             axarr[jdx, 0].set_ylabel(f'AF index: {idx_to_plot}')
             
     # Values across blade span
@@ -96,12 +96,12 @@ for idx_animate in range(max_iterations):
             axarr[jdx, 1].set_xlim([0., 1.])
             axarr[jdx, 1].set_ylabel(nice_blade_data_names[jdx])
             
-            if 'induct' in data_name:
-                axarr[jdx, 1].set_ylim([0., 0.55])
-            elif 'L_D' in data_name:
-                axarr[jdx, 1].set_ylim([0., 120])
-            elif 't/c' in data_name:
-                axarr[jdx, 1].set_ylim([0., 1.])
+            # if 'induct' in data_name:
+            #     axarr[jdx, 1].set_ylim([0., 0.55])
+            # elif 'L_D' in data_name:
+            #     axarr[jdx, 1].set_ylim([0., 120])
+            # elif 't/c' in data_name:
+            #     axarr[jdx, 1].set_ylim([0., 1.])
             
     # # Values across powercurve
     # for idx, data in enumerate(all_data):
@@ -156,5 +156,5 @@ last_num = max_iterations - 1
 for i in range(30):
     os.system(f'cp animation/' + str(last_num).zfill(3) + '.png animation/' + str(i + 1 + last_num).zfill(3) + '.png')
 
-os.system(f"ffmpeg -r 15 -i animation/%3d.png -vcodec libx264 -b 5000k -y animation/movie.mp4")
+os.system(f"ffmpeg -r 30 -i animation/%3d.png -vcodec libx264 -b 5000k -y animation/movie.mp4")
 os.system(f"ffmpeg -i animation/movie.mp4 -q:v 5 -y animation/output.wmv")
