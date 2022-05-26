@@ -1,8 +1,10 @@
-Metadata-Version: 2.1
+Metadata-Version: 1.2
 Name: INN-interface
 Version: 0.0.1
 Summary: Neural net and airfoil interface
+Home-page: UNKNOWN
 Author: Andrew Glaws
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
 Requires-Python: >=3.6
-License-File: LICENSE.txt
-License-File: NOTICE.txt
