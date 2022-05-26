@@ -78,6 +78,10 @@ class INN():
         landmarks[:, 200:, 1] -= landmarks[:, 200:, 0]*y_te_upper
 
         landmarks_gr, M_gr, b_gr = landmark_affine_transform(landmarks)
+        if landmarks_gr.ndim < 3:
+            landmarks_gr = np.expand_dims(landmarks_gr, axis=0)
+            M_gr = np.expand_dims(M_gr, axis=0)
+            b_gr = np.expand_dims(b_gr, axis=0)
         gr_coords = get_PGA_coordinates(landmarks_gr, self.karcher_mean, self.Vh.T)
         
         pga = np.concatenate((gr_coords, M_gr[:, 1, 1].reshape((-1, 1)), y_te_upper-y_te_lower), axis=1)
