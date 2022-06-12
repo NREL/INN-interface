@@ -3,9 +3,10 @@ import numpy as np
 import tensorflow as tf
 from scipy import interpolate
 from scipy.optimize import lsq_linear
+from scipy.interpolate import interp1d
+from g2aero.Grassmann import *
 from INN_interface.inv_net import InvNet
 from INN_interface.utils import *
-from INN_interface.Grassmann import *
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 tf.keras.backend.set_floatx('float64')
@@ -39,9 +40,9 @@ class INN():
         l_in = tf.keras.Input(shape=(lM,))
 
         this_directory = os.path.abspath(os.path.dirname(__file__))
-        airfoil_path = os.path.join(this_directory, 'model/PGA')
+        airfoil_path = os.path.join(this_directory, 'model')
 
-        self.scale_factors = load_scale_factors('PGA')
+        self.scale_factors = load_scale_factors(airfoil_path)
         self.model = InvNet(x_in, y_in, c_in, f_in, z_in, l_in,
                             input_shape=tf.TensorShape([xM+yM]),
                             n_layers=15, W=np.eye(xM-1),
@@ -52,77 +53,95 @@ class INN():
         self.karcher_mean = np.load(airfoil_path+'/karcher_mean.npy')
         self.KL_basis = airfoil_path+'/polar_KL.h5'
 
-    def pga_to_cst(self, pga):
+    def pga_to_cst(self, pga_in):
         # Convert PGA inputs (N_shapes x 6) to CST inputs (N_shapes x 20)
-        x, y = self.pga_to_shape(pga)
-        landmarks = np.concatenate((np.expand_dims(x, axis=-1),
-                                    np.expand_dims(y, axis=-1)), axis=-1)
-        
-        cst = self.shape_to_cst(landmarks)
+        pga = np.copy(pga_in)
+        cst = self.shape_to_cst(self.pga_to_shape(pga))
 
         return cst
 
-    def cst_to_pga(self, cst):
+    def cst_to_pga(self, cst_in):
         # Convert CST inputs (N_shapes x 20) to PGA inputs (N_shapes x 6)
-        x, y = self.cst_to_shape(cst)
-        landmarks = np.concatenate((np.expand_dims(x, axis=-1),
-                                    np.expand_dims(y, axis=-1)), axis=-1)
-        pga = self.shape_to_pga(landmarks)
+        cst = np.copy(cst_in)
+        pga = self.shape_to_pga(self.cst_to_shape(cst))
 
         return pga
 
-    def shape_to_pga(self, landmarks):
+    def shape_to_pga(self, landmarks_in):
         # Convert XY landmarks (N_shapes x 401 x 2) to PGA inputs (N_shapes x 6)
+        landmarks = np.copy(landmarks_in)
         landmarks = np.expand_dims(landmarks, axis=0) if landmarks.ndim == 2 else landmarks
+        
+        y_te_lower, y_te_upper = np.copy(landmarks[:, :1, 1]), np.copy(landmarks[:, -1:, 1])
 
-        y_te = landmarks[:, -1:, 1] - landmarks[:, :1, 1]
+        landmarks[:, :200, 1] -= landmarks[:, :200, 0]*y_te_lower
+        landmarks[:, 200:, 1] -= landmarks[:, 200:, 0]*y_te_upper
 
         landmarks_gr, M_gr, b_gr = landmark_affine_transform(landmarks)
-        gr_coords = get_PGA_coordinates(landmarks_gr, self.karcher_mean, self.Vh)
+        if landmarks_gr.ndim < 3:
+            landmarks_gr = np.expand_dims(landmarks_gr, axis=0)
+            M_gr = np.expand_dims(M_gr, axis=0)
+            b_gr = np.expand_dims(b_gr, axis=0)
+        gr_coords = get_PGA_coordinates(landmarks_gr, self.karcher_mean, self.Vh.T)
         
-        pga = np.concatenate((gr_coords, M_gr[:, 1, 1].reshape((-1, 1)), y_te), axis=1) 
+        pga = np.concatenate((gr_coords, M_gr[:, 1, 1].reshape((-1, 1)), y_te_upper-y_te_lower), axis=1)
 
         return pga
-
-    def pga_to_shape(self, pga):
+    
+    def pga_to_shape(self, pga_in):
         # Convert PGA inputs (N_shapes x 6) to XY landmarks (N_shapes x 401 x 2)
+        pga = np.copy(pga_in)
         pga = pga.reshape((1, -1)) if pga.ndim == 1 else pga
+
+        x_c = -np.cos(np.arange(0, np.pi+0.005, np.pi*0.005))*0.5+0.5
 
         landmarks = np.empty((pga.shape[0], 401, 2))
         for i, pga_i in enumerate(pga):
             M = np.array([[-7.08867942e+00, -7.99187803e-04],
-                          [-0.08200894864926603, pga_i[4]]])
+                          [-0.08200894864926603, pga_i[-2]]])
             b = np.array([[0.50124688, 0.]])
             gr_shape_i = perturb_gr_shape(self.Vh, self.karcher_mean, 
-                                          pga_i[:4].reshape((1, -1)), scale=1)
-            landmarks[i, :, :] = gr_shape_i @ M.T + b
+                                          pga_i[:-2].reshape((1, -1)))
+            landmark_i = gr_shape_i @ M.T + b
             
-            x_min, x_max = np.min(landmarks[i, :, 0]), np.max(landmarks[i, :, 0])
-            landmarks[i, :, 0] = (landmarks[i, :, 0] - x_min)
-            landmarks[i, :, :] = landmarks[i, :, :]/(x_max - x_min)
-            y_le, y_te_lower = landmarks[i, 200, 1], landmarks[i, 0, 1]
-            landmarks[i, :, 1] = (landmarks[i, :, 1] - y_le)
-            landmarks[i, :, 1] = (landmarks[i, :, 1] + landmarks[i, :, 0]*(y_le-y_te_lower))
+            x_min = np.min(landmark_i[:, 0])
+            x_te_l = landmark_i[0, 0]
+            x_te_u = landmark_i[-1, 0]
+            landmark_i[:, 0] = (landmark_i[:, 0] - x_min)
+            landmark_i[:201, :] = landmark_i[:201, :]/(x_te_l - x_min)
+            landmark_i[200:, :] = landmark_i[200:, :]/(x_te_u - x_min)
+            y_le, y_te_lower = landmark_i[200, 1], landmark_i[0, 1]
+            landmark_i[:, 1] = (landmark_i[:, 1] - y_le)
+            landmark_i[:, 1] = (landmark_i[:, 1] + landmark_i[:, 0]*(y_le-y_te_lower))
 
-            landmarks[i, :200, 1] -= landmarks[i, :200, 0]*(0.5*pga_i[5])
-            landmarks[i, 200:, 1] += landmarks[i, 200:, 0]*(0.5*pga_i[5])
+            ff = interp1d(landmark_i[:201, 0], landmark_i[:201, 1], kind='cubic')
+            yl_c = ff(np.flip(x_c))
+            ff = interp1d(landmark_i[200:, 0], landmark_i[200:, 1], kind='cubic')
+            yu_c = ff(x_c)
+
+            landmarks[i, :, 0] = np.concatenate((np.flip(x_c[1:]), x_c), axis=0)
+            landmarks[i, :, 1] = np.concatenate((yl_c[:-1], yu_c), axis=0)
+        
+            landmarks[i, :200, 1] -= landmarks[i, :200, 0]*(0.5*pga_i[-1])
+            landmarks[i, 200:, 1] += landmarks[i, 200:, 0]*(0.5*pga_i[-1])
             
-        return landmarks[:, :, 0], landmarks[:, :, 1]
+        return landmarks
 
-    def shape_to_cst(self, landmarks):
+    def shape_to_cst(self, landmarks_in):
         # Convert XY landmarks (N_shapes x 401 x 2) to CST inputs (N_shapes x 20)
+        landmarks = np.copy(landmarks_in)
         landmarks = np.expand_dims(landmarks, axis=0) if landmarks.ndim == 2 else landmarks
 
         y_te_lower, y_te_upper = landmarks[:, :1, 1], landmarks[:, -1:, 1]
 
         cst = np.empty((landmarks.shape[0], 20))
         for i, xy in enumerate(landmarks):
-            A = self.cst_matrix(xy[:200, 0], 0.5, 1.0, 8)
+            A = cst_matrix(xy[:200, 0], 0.5, 1.0, 8)
             A = np.hstack((A, xy[:200, 0].reshape(-1, 1)))
             out = lsq_linear(A, xy[:200, 1])
             cst_lower = out.x[:9]
 
-            A = self.cst_matrix(xy[200:, 0], 0.5, 1.0, 8)
+            A = cst_matrix(xy[200:, 0], 0.5, 1.0, 8)
             A = np.hstack((A, xy[200:, 0].reshape(-1, 1)))
             out = lsq_linear(A, xy[200:, 1])
             cst_upper = out.x[:9]
@@ -132,8 +151,9 @@ class INN():
 
         return cst
 
-    def cst_to_shape(self, cst):
+    def cst_to_shape(self, cst_in):
         # Convert CST inputs (N_shapes x 20) to XY landmarks (N_shapes x 401 x 2)
+        cst = np.copy(cst_in)
         cst = cst.reshape((1, -1)) if cst.ndim == 1 else cst
 
         n_half = int(401 / 2)
@@ -142,21 +162,20 @@ class INN():
         for i, cst in enumerate(cst):
             cst_lower = np.append(cst[0:9], cst[-2])
             cst_upper = np.append(cst[9:18], cst[-1])
-            landmarks[i] = from_cst_parameters(x_c, cst_lower, cst_upper, 0.5, 1.0)
 
-        return landmarks[:, :, 0], landmarks[:, :, 1]
+            order = np.size(cst_lower) - 2
+            amat = cst_matrix(x_c, 0.5, 1.0, order)
+            amat = np.hstack((amat, x_c.reshape(-1, 1)))
 
-    def cst_matrix(self, x, n1=0.5, n2=1.0, order=8):
-        # Create CST matrix for fitting CST parameters to airfoil shape
-        x = np.asarray(x)
-        class_function = np.power(x, n1) * np.power((1.0 - x), n2)
+            y_lower = np.dot(amat, cst_lower)
+            y_upper = np.dot(amat, cst_upper)
 
-        K = comb(order, range(order + 1))
-        shape_function = np.empty((order + 1, x.shape[0]))
-        for i in range(order + 1):
-            shape_function[i, :] = K[i] * np.power(x, i) * np.power((1.0 - x), (order - i))
+            x = np.hstack((x_c[::-1], x_c[1:])).reshape(-1, 1)
+            y = np.hstack((y_lower[::-1], y_upper[1:])).reshape(-1, 1)
 
-        return (class_function * shape_function).T
+            landmarks[i] = np.hstack((x, y))
+
+        return landmarks
 
     def sort_by_errs(self, x_inv, y_inv, y, c, f, z, N=1):
         # Sort shapes by total errors
@@ -382,9 +401,7 @@ class INN():
         X, alpha = x_inv[:, :-1], x_inv[:, -1:]
             
         if data_format.upper() == 'XY':
-            x, y = self.pga_to_shape(X)
-            X = np.concatenate((np.expand_dims(x, axis=-1),
-                                np.expand_dims(y, axis=-1)), axis=-1)
+            X = self.pga_to_shape(X)
         elif data_format.upper() == 'CST':
             X = self.pga_to_cst(X)
         else:
