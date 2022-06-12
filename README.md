@@ -1,5 +1,5 @@
 ## Installing the INN-interface
-Installation with [Anaconda](https://www.anaconda.com) is the recommended approach because of the ability to create self-contained environments suitable for testing and analysis.  The WISDEM-INN framework requires [Anaconda 64-bit](https://www.anaconda.com/distribution/).
+Installation with [Anaconda](https://www.anaconda.com) is the recommended approach because of the ability to create self-contained environments suitable for testing and analysis.  The INN-WISDEM framework requires [Anaconda 64-bit](https://www.anaconda.com/distribution/).
 
 The Anaconda environment can be built from the environment.yml using
 

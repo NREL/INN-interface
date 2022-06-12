@@ -1,3 +1,12 @@
+"""
+This example simply runs the coupled INN-WISDEM code in an analysis, not an optimization.
+
+This is the simplest type of case that uses the INN airfoil information within
+the full turbine computation. Instead of using the tabulated airfoil performance
+information contained in the geometry yaml, this example instead uses the performance
+info computed by the INN.
+"""
+
 import os
 
 from wisdem import run_wisdem
