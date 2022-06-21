@@ -12,7 +12,7 @@ Then install the INN-interface library
         cd INN-interface/
         pip install -e .
 
-## Installation with WISDEM
+## Installation with WISDEM®
 To install the INN-interface with WISDEM follow these steps.
 
 1.  In order to directly use the examples in the repository and peek at the code when necessary, we recommend all users install WISDEM in *developer* mode.  This is done by first installing WISDEM as a conda package to easily satisfy all dependencies, but then removing the WISDEM conda package and reinstalling from the Github source code.  Note the differences between Windows and Mac/Linux build systems:
