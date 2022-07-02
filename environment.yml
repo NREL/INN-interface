@@ -8,6 +8,8 @@ dependencies:
   - h5py
   - matplotlib
   - numpy
+  - pip
   - python=3.8
-  - tensorflow>=2.7.0
   - wisdem
+  - pip:
+    - tensorflow>=2.7.0
