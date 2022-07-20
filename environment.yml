@@ -11,5 +11,3 @@ dependencies:
   - pip
   - python=3.8
   - wisdem
-  - pip:
-    - tensorflow>=2.7.0
