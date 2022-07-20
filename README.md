@@ -5,6 +5,10 @@ The Anaconda environment can be built from the environment.yml using
 
         conda env create -f environment.yml
         conda activate inn_env
+        
+Then install the TensorFlow using
+
+        pip install tensorflow>=2.7.0
 
 Then install the INN-interface library
 
